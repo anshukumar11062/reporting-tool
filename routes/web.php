@@ -15,8 +15,8 @@ use App\Http\Controllers\MasterController;
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/', function () {
+    return view('welcome');
+});
 
 Route::get('/{id}/genratepdf', [Controller::class, 'GenPDF']);

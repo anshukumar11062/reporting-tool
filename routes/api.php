@@ -33,8 +33,8 @@ Route::controller(MasterController::class)->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('getmenu', 'MenuList');
-    
-    
+
+
     /*
     |--------------------------------------------------------------------------
     | Resource master
@@ -104,10 +104,6 @@ Route::controller(MasterController::class)->group(function () {
     Route::put('templateFtr/update/{id}', 'UpdateTempFooters');
     Route::get('templateFtr/view/{id}', 'GetTempFooters');
     Route::get('templateFtr/list', 'GetTempFooters');
-
-
-    
-    
 });
 
 Route::controller(Controller::class)->group(function () {
@@ -119,5 +115,3 @@ Route::controller(Controller::class)->group(function () {
     Route::post('getreport/template', 'GenPDFArr');
     Route::post('getreport/template1', 'check');
 });
-
-
