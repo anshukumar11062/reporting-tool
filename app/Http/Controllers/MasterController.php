@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Http\Requests\Resource as ResourceRequest;
 use App\Http\Requests\TemplateRequest;
+use App\Models\VtTemplate;
 use Illuminate\Http\Request;
 
 
 use Illuminate\Support\Facades\DB;
 use Exception;
-
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Schema;
 
 /*******************************************************************************
  * Report tool api                                                              *
@@ -48,15 +50,17 @@ class MasterController extends Controller
 
         try {
             $imagePath = "";
+            $relativePath = "images/";
             if ($resource->image) {
                 $imagePath = time() . '.' . $resource->image->extension();
-                $resource->image->move(public_path('images'), $imagePath);
+                $resource->image->move(public_path($relativePath), $imagePath);
             }
 
             $vtres = new VtResource();
             $vtres->resource_name = $resource->resource_name;
             $vtres->image_path = $imagePath;
             $vtres->status = 1;
+            $vtres->relative_path = $relativePath;
             $vtres->save();
             return responseMsgs(true, "Successfully Saved", []);
         } catch (Exception $e) {
@@ -78,20 +82,23 @@ class MasterController extends Controller
         }
         try {
             $res = VtResource::find($resource->id);
+            $relativePath = "images/";
             if ($res) {
                 $imagePath = "";
                 if ($resource->image) {
                     $imagePath = time() . '.' . $resource->image->extension();
-                    $resource->image->move(public_path('images'), $imagePath);
+                    $resource->image->move(public_path($relativePath), $imagePath);
                 }
 
                 $res->resource_name = $resource->resource_name;
                 $res->image_path = $imagePath;
+                $res->relative_path = $relativePath;
                 $res->save();
                 return responseMsgs(true, "Updated Successfully", []);
-            } else {
+            } else
                 throw new Exception("id not found");
-            }
+
+            return responseMsgs(true, "Successfully Updated", []);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
@@ -102,18 +109,19 @@ class MasterController extends Controller
     {
         try {
             $arr = array();
-            if ($resource->id) {
-                $arr = DB::table('vt_resources')->where('id', $resource->id)->first();
-            } else {
-                $res = DB::table('vt_resources')->orderByDesc('id')->get();
-                foreach ($res as $data) {
-                    $val['id'] = $data->id;
-                    $val['resource_name'] = $data->resource_name;
-                    $val['image_path'] = $data->image_path;
-                    $val['status'] = $data->status;
-                    array_push($arr, $val);
-                }
-            }
+            $imgUrl = url('/');
+            $baseQuery = DB::table('vt_resources')
+                ->select("*")
+                ->addSelect(DB::raw("concat('$imgUrl/',relative_path,image_path) as image_full_path"));
+
+            if ($resource->id)
+                $arr = $baseQuery
+                    ->where('id', $resource->id)
+                    ->first();
+            else
+                $arr = $baseQuery
+                    ->orderByDesc('id')
+                    ->get();
 
             return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
@@ -179,29 +187,16 @@ class MasterController extends Controller
     }
 
     // Get data for view and list in vt_search_groups table
-    public function GetGroup(Request $resource)
+    public function getGroup(Request $resource)
     {
         try {
             $arr = array();
             // Check id found form request
-            if ($resource->id) {
+            if ($resource->id)
                 $arr = DB::table('vt_search_groups')->where('id', $resource->id)->first(); // Particular single record based on id
-            } else {
-                $res = DB::table('vt_search_groups')->where('status', 1)->orderByDesc('id')->get(); // All records from table
-                foreach ($res as $data) {
-                    $isReport = 'No';
-                    if ($data->is_report == true) {
-                        $isReport = 'Yes';
-                    }
+            else
+                $arr = DB::table('vt_search_groups')->where('status', 1)->orderByDesc('id')->get(); // All records from table
 
-                    $val['id'] = $data->id;
-                    $val['search_group'] = $data->search_group;
-                    $val['is_report'] = $isReport;
-                    $val['status'] = $data->status;
-                    $val['parent_id'] = $data->parent_id;
-                    array_push($arr, $val);
-                }
-            }
             return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
@@ -213,80 +208,69 @@ class MasterController extends Controller
     /************** String master Start **************/
 
     // For save data in vt_strings table
-    public function SaveString(Request $data)
+    public function saveString(Request $data)
     {
         $validator = Validator::make($data->all(), [
             'fieldName' => 'required',
             'description' => 'required'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['Message' => $validator->messages()]);
-        }
+        if ($validator->fails())
+            return validationError($validator);
 
         try {
-
             $vtstr = new VtString();
             $vtstr->field_name = $data->fieldName;
             $vtstr->description = $data->description;
             $vtstr->status = 1;
             $vtstr->save();
-            return response()->json(['status' => true, 'Message' => "Save successfully"], 200);
+            return responseMsgs(true, "Successfully Saved", []);
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
 
     // For update data in vt_strings table
-    public function UpdateString(Request $data)
+    public function updateString(Request $data)
     {
         $validator = Validator::make($data->all(), [
+            'id' => 'required|integer',
             'fieldName' => 'required',
             'description' => 'required'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['Message' => $validator->messages()]);
-        }
+        if ($validator->fails())
+            return validationError($validator);
+
         try {
             $res = VtString::find($data->id);
             if ($res) {
                 $res->field_name = $data->fieldName;
                 $res->description = $data->description;
                 $res->save();
-
-                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200);
+                return responseMsgs(true, "Successfully Updated", []);
             } else {
-                return response()->json('Id Not Found', 404);
+                throw new Exception("No Id Available");
             }
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
 
     // Get data for view and list in vt_strings table
-    public function GetString(Request $resource)
+    public function getString(Request $resource)
     {
         try {
             $arr = array();
             // Check id found form request
-            if ($resource->id) {
-                $res = DB::table('vt_strings')->where('id', $resource->id)->get(); // Particular single record based on id
-            } else {
-                $res = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get(); // All records from table
-            }
+            if ($resource->id)
+                $arr = DB::table('vt_strings')->where('id', $resource->id)->first(); // Particular single record based on id
+            else
+                $arr = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get(); // All records from table
 
-            foreach ($res as $data) {
-
-                $val['id'] = $data->id;
-                $val['field_name'] = $data->field_name;
-                $val['description'] = $data->description;
-                $val['status'] = $data->status;
-                array_push($arr, $val);
-            }
-            return response($arr, 200);
+            return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
-            return response()->json($e, 400);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
     /************** String master End **************/
@@ -294,92 +278,108 @@ class MasterController extends Controller
     /************** Create template Start **************/
 
     // For save data in vt_templates table
-    public function SaveTemplate(Request $request)
+    public function saveTemplate(TemplateRequest $req)
     {
-
-        // if ($validator->fails()) {    
-        //     return response()->json(['Message' => $validator->messages()]);
-        // }
-        //$validated = $request->isValidFile(); 
-        //$validator = Validator::validate($request);
-        //dd($this->failedValidation($request));
-        return $this->_mstr->InsTemplate($request);
+        try {
+            $mVtTemplates = new VtTemplate();
+            $metaReqs = [
+                "search_group_id" => $req->searchGroupId,
+                "template_code" => $req->templateCode,
+                "template_name" => $req->templateName,
+                "paper_size_enum" => $req->paperSizeEnum,
+                "detail_layout" => $req->detailLayout,
+                "header_height" => $req->headerHeight,
+                "header_height_page2" => $req->headerHeightPage2,
+                "footer_height" => $req->footerHeight,
+                "detail_line_spacing" => $req->detailLineSpacing,
+                "layout_sql" => $req->layoutSql,
+                "detail_sql" => $req->detailSql,
+                "footer_sql" => $req->footerSql,
+                "is_default" => $req->isDefault,
+                "is_landscape" => $req->isLandscape,
+                "is_global_header" => $req->isGlobalHeader,
+                "is_render_global_header" => $req->isRenderGlobalHeader,
+                "is_page_layout_in_pager2" => $req->isPageLayoutInPager2,
+                "groupby_expression" => $req->groupbyExpression,
+                "is_show_grid_line" => $req->isShowGridLine,
+                "header_distance" => $req->headerDistance,
+                "screen_display_string" => $req->screenDisplayString,
+                "parent_id" => $req->parentId,
+                "label_row_count" => $req->labelRowCount,
+                "label_column_count" => $req->labelColumnCount,
+                "is_detail_wordwrap" => $req->isDetailWordwrap,
+                "is_compact_footer" => $req->isCompactFooter,
+            ];
+            $mVtTemplates->create($metaReqs);
+            return responseMsgs(true, "Successfully Saved the template", []);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
     }
 
     // For update data in vt_strings table
-    public function UpdateTemplate(Request $data)
+    public function updateTemplate(TemplateRequest $req)
     {
-        //$tempate = new VtTemplate();
-        // $validator = Validator::make($data->all(), [
-        //     'templateCode' => 'required',
-        //     'templateName' => 'required',
-        //     'paperSizeEnum' => 'required',
-        //     'detailLayout' => 'required',
-        //     'headerHeight' => 'required',
-        //     'headerHeightPage2' => 'required',
-        //     'footerHeight' => 'required',
-        //     'detailLineSpacing' => 'required',
-        //     'layoutSql' => 'required',
-        //     'detailSql' => 'required',
-        //     'footerSql' => 'required'
-        // ]);
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|integer',
+        ]);
 
-        // if ($validator->fails()) {    
-        //     return response()->json(['Message' => $validator->messages()]);
-        // }
+        if ($validator->fails())
+            return validationError($validator);
+
         try {
-            return $this->_mstr->upTemplate($data);
+            $mVtTemplates = new VtTemplate();
+            $template = $mVtTemplates::find($req->id);
+            $metaReqs = [
+                "search_group_id" => $req->searchGroupId,
+                "template_code" => $req->templateCode,
+                "template_name" => $req->templateName,
+                "paper_size_enum" => $req->paperSizeEnum,
+                "detail_layout" => $req->detailLayout,
+                "header_height" => $req->headerHeight,
+                "header_height_page2" => $req->headerHeightPage2,
+                "footer_height" => $req->footerHeight,
+                "detail_line_spacing" => $req->detailLineSpacing,
+                "layout_sql" => $req->layoutSql,
+                "detail_sql" => $req->detailSql,
+                "footer_sql" => $req->footerSql,
+                "is_default" => $req->isDefault,
+                "is_landscape" => $req->isLandscape,
+                "is_global_header" => $req->isGlobalHeader,
+                "is_render_global_header" => $req->isRenderGlobalHeader,
+                "is_page_layout_in_pager2" => $req->isPageLayoutInPager2,
+                "groupby_expression" => $req->groupbyExpression,
+                "is_show_grid_line" => $req->isShowGridLine,
+                "header_distance" => $req->headerDistance,
+                "screen_display_string" => $req->screenDisplayString,
+                "parent_id" => $req->parentId,
+                "label_row_count" => $req->labelRowCount,
+                "label_column_count" => $req->labelColumnCount,
+                "is_detail_wordwrap" => $req->isDetailWordwrap,
+                "is_compact_footer" => $req->isCompactFooter,
+            ];
+            $template->update($metaReqs);
+            return responseMsgs(true, "Successfully Updated the template", []);
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
 
     //Get data for view and list in vt_templates table
-    public function GetTemplate(Request $resource)
+    public function getTemplate(Request $resource)
     {
         try {
-            $arr = array();
             // Check id found form request
             if ($resource->id) {
-                $res = DB::table('vt_templates')->where('id', $resource->id)->get(); // Particular single record based on id
-            } else {
+                $res = DB::table('vt_templates')->where('id', $resource->id)->first(); // Particular single record based on id
+                if (collect($res)->isEmpty())
+                    throw new Exception("Resourse Template Not Found");
+            } else
                 $res = DB::table('vt_templates')->where('status', 1)->orderByDesc('id')->get(); // All records from table
-            }
 
-            foreach ($res as $data) {
-
-                $val['id'] = $data->id;
-                $val['template_code'] = $data->template_code;
-                $val['template_name'] = $data->template_name;
-                $val['paper_size_enum'] = $data->paper_size_enum;
-                $val['detail_layout'] = $data->detail_layout;
-                $val['header_height'] = $data->header_height;
-                $val['header_height_page2'] = $data->header_height_page2;
-                $val['footer_height'] = $data->footer_height;
-                $val['detail_line_spacing'] = $data->detail_line_spacing;
-                $val['layout_sql'] = $data->layout_sql;
-                $val['detail_sql'] = $data->detail_sql;
-                $val['footer_sql'] = $data->footer_sql;
-                $val['is_default'] = $data->is_default;
-                $val['is_landscape'] = $data->is_landscape;
-                $val['is_global_header'] = $data->is_global_header;
-                $val['is_render_global_header'] = $data->is_render_global_header;
-                $val['is_page_layout_in_pager2'] = $data->is_page_layout_in_pager2;
-                $val['groupby_expression'] = $data->groupby_expression;
-                $val['is_show_grid_line'] = $data->is_show_grid_line;
-                $val['header_distance'] = $data->header_distance;
-                $val['screen_display_string'] = $data->screen_display_string;
-                $val['parent_id'] = $data->parent_id;
-                $val['label_row_count'] = $data->label_row_count;
-                $val['label_column_count'] = $data->label_column_count;
-                $val['is_detail_wordwrap'] = $data->is_detail_wordwrap;
-                $val['is_compact_footer'] = $data->is_compact_footer;
-                $val['status'] = $data->status;
-                array_push($arr, $val);
-            }
-            return response($arr, 200);
+            return responseMsgs(true, "Fetched Templates", remove_null($res));
         } catch (Exception $e) {
-            return response()->json($e, 400);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
     /************** Create template End **************/

@@ -9,5 +9,5 @@ use Illuminate\Database\Eloquent\Model;
 class VtTemplate extends Model
 {
     use HasFactory;
-    
+    protected $guarded = [];
 }

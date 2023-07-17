@@ -24,8 +24,8 @@ use App\Traits\Api\MasterApi;
  * ---------------------------------------------------------------------------------------------------------
  */
 
- Class MasterApiRepository
- {
+class MasterApiRepository
+{
     use MasterApi;
 
     /**
@@ -42,19 +42,15 @@ use App\Traits\Api\MasterApi;
         // if ($validated->fails()) {    
         //     return response()->json(['Message' => $validated->messages()]);
         // }
-        try
-        {
-            
+        try {
             $res = new VtTemplate;
             return $this->InsertData($res, $data->request);
-        }
-        catch (Exception $e) 
-        {
+        } catch (Exception $e) {
             return response()->json([$e, 400]);
         }
     }
 
-    
+
     /**
      * Update Tempalte.
      *
@@ -65,21 +61,15 @@ use App\Traits\Api\MasterApi;
      */
     public function upTemplate($data)
     {
-        try
-        {
+        try {
             $res = VtTemplate::find($data->id);
-            if ($res) 
-            {
+            if ($res) {
                 return $this->UpdateData($res, $data->request);
-            }
-            else 
-            {
+            } else {
                 return response()->json('Id Not Found', 404);
             }
-        }
-        catch (Exception $e) 
-        {
+        } catch (Exception $e) {
             return response()->json([$e, 400]);
         }
     }
- }
+}

@@ -8,6 +8,7 @@
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * | Response Msg Version2 with apiMetaData
@@ -83,5 +84,24 @@ if (!function_exists("responseTime")) {
     {
         $responseTime = (microtime(true) - LARAVEL_START) * 1000;
         return round($responseTime, 2);
+    }
+}
+
+
+if (!function_exists("tableSchema")) {
+    function tableSchema($table)
+    {
+        $response = array();
+        $response['payload'] = array();
+        $table = 'vt_templates';
+        $schema = Schema::getColumnListing($table);
+        foreach ($schema as $value) {
+            $field_name = str_replace('_', '', ucwords($value, '_'));
+            $field_name = str_replace(' ', '', $field_name);
+            $field_name = lcfirst($field_name);
+            array_push($response['payload'], $field_name);
+        }
+        $response['schema'] = $schema;
+        return $response;
     }
 }

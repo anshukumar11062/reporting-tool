@@ -60,20 +60,20 @@ Route::controller(MasterController::class)->group(function () {
     | String master
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/string/save', 'SaveString');
-    Route::put('v1/string/update/{id}', 'UpdateString');
-    Route::get('v1/string/view/{id}', 'GetString');
-    Route::get('v1/string/list', 'GetString');
+    Route::post('v1/string/save', 'saveString');
+    Route::post('v1/string/update', 'updateString');
+    Route::post('v1/string/view', 'getString');
+    Route::post('v1/string/list', 'getString');
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte master
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/template/save', 'SaveTemplate');
-    Route::put('v1/template/update/{id}', 'UpdateTemplate');
-    Route::get('v1/template/view/{id}', 'GetTemplate');
-    Route::get('v1/template/list', 'GetTemplate');
+    Route::post('v1/template/save', 'saveTemplate');
+    Route::post('v1/template/update', 'updateTemplate');
+    Route::post('v1/template/view', 'getTemplate');
+    Route::post('v1/template/list', 'getTemplate');
 
     /*
     |--------------------------------------------------------------------------
