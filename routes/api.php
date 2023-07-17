@@ -32,7 +32,7 @@ Route::controller(MasterController::class)->group(function () {
     | Menu List
     |--------------------------------------------------------------------------
     */
-    Route::get('getmenu', 'MenuList');
+    Route::post('v1/getmenu', 'MenuList');
 
 
     /*
@@ -40,70 +40,70 @@ Route::controller(MasterController::class)->group(function () {
     | Resource master
     |--------------------------------------------------------------------------
     */
-    Route::post('resource/save', 'resource_save');
-    Route::put('resource/update/{id}', 'resource_update');
-    Route::get('resource/view/{id}', 'getresource');
-    Route::get('resource/list', 'getresource');
+    Route::post('v1/resource/save', 'resourceSave');
+    Route::post('v1/resource/update', 'resourceUpdate');
+    Route::post('v1/resource/view', 'getresource');
+    Route::post('v1/resource/list', 'getresource');
 
     /*
     |--------------------------------------------------------------------------
     | Search Group master
     |--------------------------------------------------------------------------
     */
-    Route::post('group/save', 'SaveGroup');
-    Route::put('group/update/{id}', 'UpdateGroup');
-    Route::get('group/view/{id}', 'GetGroup');
-    Route::get('group/list', 'GetGroup');
+    Route::post('v1/group/save', 'saveGroup');
+    Route::post('v1/group/update', 'updateGroup');
+    Route::post('v1/group/view', 'getGroup');
+    Route::post('v1/group/list', 'getGroup');
 
     /*
     |--------------------------------------------------------------------------
     | String master
     |--------------------------------------------------------------------------
     */
-    Route::post('string/save', 'SaveString');
-    Route::put('string/update/{id}', 'UpdateString');
-    Route::get('string/view/{id}', 'GetString');
-    Route::get('string/list', 'GetString');
+    Route::post('v1/string/save', 'SaveString');
+    Route::put('v1/string/update/{id}', 'UpdateString');
+    Route::get('v1/string/view/{id}', 'GetString');
+    Route::get('v1/string/list', 'GetString');
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte master
     |--------------------------------------------------------------------------
     */
-    Route::post('template/save', 'SaveTemplate');
-    Route::put('template/update/{id}', 'UpdateTemplate');
-    Route::get('template/view/{id}', 'GetTemplate');
-    Route::get('template/list', 'GetTemplate');
+    Route::post('v1/template/save', 'SaveTemplate');
+    Route::put('v1/template/update/{id}', 'UpdateTemplate');
+    Route::get('v1/template/view/{id}', 'GetTemplate');
+    Route::get('v1/template/list', 'GetTemplate');
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte Page Layouts
     |--------------------------------------------------------------------------
     */
-    Route::post('templatePL/save', 'SaveTempPageLayouts');
-    Route::put('templatePL/update/{id}', 'UpdateTempPageLayouts');
-    Route::get('templatePL/view/{id}', 'GetTempPageLayouts');
-    Route::get('templatePL/list', 'GetTempPageLayouts');
+    Route::post('v1/templatePL/save', 'SaveTempPageLayouts');
+    Route::put('v1/templatePL/update/{id}', 'UpdateTempPageLayouts');
+    Route::get('v1/templatePL/view/{id}', 'GetTempPageLayouts');
+    Route::get('v1/templatePL/list', 'GetTempPageLayouts');
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte Details
     |--------------------------------------------------------------------------
     */
-    Route::post('templateDtl/save', 'SaveTempDetails');
-    Route::put('templateDtl/update/{id}', 'UpdateTempDetails');
-    Route::get('templateDtl/view/{id}', 'GetTempDetails');
-    Route::get('templateDtl/list', 'GetTempDetails');
+    Route::post('v1/templateDtl/save', 'SaveTempDetails');
+    Route::put('v1/templateDtl/update/{id}', 'UpdateTempDetails');
+    Route::get('v1/templateDtl/view/{id}', 'GetTempDetails');
+    Route::get('v1/templateDtl/list', 'GetTempDetails');
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte Footer
     |--------------------------------------------------------------------------
     */
-    Route::post('templateFtr/save', 'SaveTempFooter');
-    Route::put('templateFtr/update/{id}', 'UpdateTempFooters');
-    Route::get('templateFtr/view/{id}', 'GetTempFooters');
-    Route::get('templateFtr/list', 'GetTempFooters');
+    Route::post('v1/templateFtr/save', 'SaveTempFooter');
+    Route::put('v1/templateFtr/update/{id}', 'UpdateTempFooters');
+    Route::get('v1/templateFtr/view/{id}', 'GetTempFooters');
+    Route::get('v1/templateFtr/list', 'GetTempFooters');
 });
 
 Route::controller(Controller::class)->group(function () {
@@ -112,6 +112,6 @@ Route::controller(Controller::class)->group(function () {
     | Return report template
     |--------------------------------------------------------------------------
     */
-    Route::post('getreport/template', 'GenPDFArr');
-    Route::post('getreport/template1', 'check');
+    Route::post('v1/getreport/template', 'GenPDFArr');
+    Route::post('v1/getreport/template1', 'check');
 });

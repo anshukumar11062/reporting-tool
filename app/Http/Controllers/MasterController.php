@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Repository\Api\MasterApiRepository as MasterApiRepository;
 use App\Models\VtResource;
 use App\Models\VtSearchGroup;
@@ -20,79 +21,79 @@ use Exception;
 
 
 /*******************************************************************************
-* Report tool api                                                              *
-*                                                                              *
-* Version: 1.0                                                                 *
-* Date:    2022-08-26                                                          *
-* Author:  Shashi Kumar Sharma                                                 *
-*******************************************************************************/
+ * Report tool api                                                              *
+ *                                                                              *
+ * Version: 1.0                                                                 *
+ * Date:    2022-08-26                                                          *
+ * Author:  Shashi Kumar Sharma                                                 *
+ *******************************************************************************/
 
 class MasterController extends Controller
 {
     protected $mstr;
     public $pdfapi;
     public $layout;
+    private $_mstr;
 
     public function __construct(MasterApiRepository $mstr)
     {
-        $this->Mstr = $mstr;
+        $this->_mstr = $mstr;
     }
     /************** Resource Master Start **************/
-    
+
 
     // For save data in vt_resources table
-    public function resource_save(ResourceRequest $resource)
+    public function resourceSave(ResourceRequest $resource)
     {
-        
+
         try {
             $imagePath = "";
-            if($resource->image)
-            {
-                $imagePath = time().'.'.$resource->image->extension();
+            if ($resource->image) {
+                $imagePath = time() . '.' . $resource->image->extension();
                 $resource->image->move(public_path('images'), $imagePath);
             }
-            
+
             $vtres = new VtResource();
             $vtres->resource_name = $resource->resource_name;
             $vtres->image_path = $imagePath;
             $vtres->status = 1;
             $vtres->save();
-            return response()->json(['status' => true, 'Message' => "Save successfully"], 200);
+            return responseMsgs(true, "Successfully Saved", []);
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
 
     // For update data in vt_resources table
-    public function resource_update(Request $resource)
+    public function resourceUpdate(Request $resource)
     {
         $validator = Validator::make($resource->all(), [
+            'id' => 'required|integer',
             'resource_name' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg|max:1024'
         ]);
-        
-        if ($validator->fails()) {    
-            return response()->json(['Message' => $validator->messages()]);
+
+        if ($validator->fails()) {
+            return validationError($validator);
         }
         try {
             $res = VtResource::find($resource->id);
             if ($res) {
                 $imagePath = "";
-                if($resource->image)
-                {
-                    $imagePath = time().'.'.$resource->image->extension();
+                if ($resource->image) {
+                    $imagePath = time() . '.' . $resource->image->extension();
                     $resource->image->move(public_path('images'), $imagePath);
                 }
-                
+
                 $res->resource_name = $resource->resource_name;
                 $res->image_path = $imagePath;
                 $res->save();
-                return response()->json(['status' => true, 'Message' => "Update successfully"], 200); 
+                return responseMsgs(true, "Updated Successfully", []);
             } else {
-                return response()->json('Id Not Found', 404);
+                throw new Exception("id not found");
             }
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
 
@@ -101,22 +102,22 @@ class MasterController extends Controller
     {
         try {
             $arr = array();
-            if($resource->id){
-                $res = DB::table('vt_resources')->where('id', $resource->id)->get();
-            }else{
+            if ($resource->id) {
+                $arr = DB::table('vt_resources')->where('id', $resource->id)->first();
+            } else {
                 $res = DB::table('vt_resources')->orderByDesc('id')->get();
+                foreach ($res as $data) {
+                    $val['id'] = $data->id;
+                    $val['resource_name'] = $data->resource_name;
+                    $val['image_path'] = $data->image_path;
+                    $val['status'] = $data->status;
+                    array_push($arr, $val);
+                }
             }
-            
-            foreach ($res as $data) {
-                $val['id'] = $data->id;
-                $val['resource_name'] = $data->resource_name;
-                $val['image_path'] = $data->image_path;
-                $val['status'] = $data->status;
-                array_push($arr, $val);
-            }
-            return response($arr, 200);
+
+            return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
-            return response()->json($e, 400);
+            return responseMsgs(true, $e->getMessage(), []);
         }
     }
     /************** Resource Master End **************/
@@ -124,24 +125,23 @@ class MasterController extends Controller
     /************** Search Group master Start **************/
 
     // For save data in vt_search_groups table
-    public function SaveGroup(Request $data)
+    public function saveGroup(Request $data)
     {
         $validator = Validator::make($data->all(), [
             'searchGroup' => 'required',
             'isReport' => 'required'
         ]);
-        
-        if ($validator->fails()) {    
-            return response()->json(['Message' => $validator->messages()]);
-        }
+
+        if ($validator->fails())
+            return validationError($validator);
 
         try {
 
             $vtgrp = new VtSearchGroup();
             $vtgrp->search_group = $data->searchGroup;
-            $vtgrp->is_report = ($data->isReport == 'Yes')? true:false;
+            $vtgrp->is_report = ($data->isReport == 'Yes') ? true : false;
             $vtgrp->status = 1;
-            $vtgrp->parent_id = isset($data->parentId)?$data->parentId:null;
+            $vtgrp->parent_id = isset($data->parentId) ? $data->parentId : null;
             $vtgrp->save();
             return response()->json(['status' => true, 'Message' => "Save successfully"], 200);
         } catch (Exception $e) {
@@ -150,32 +150,31 @@ class MasterController extends Controller
     }
 
     // For update data in vt_search_groups table
-    public function UpdateGroup(Request $data)
+    public function updateGroup(Request $data)
     {
         $validator = Validator::make($data->all(), [
+            'id' => 'required|integer',
             'searchGroup' => 'required',
             'isReport' => 'required'
         ]);
-        
-        if ($validator->fails()) {    
-            return response()->json(['Message' => $validator->messages()]);
+
+        if ($validator->fails()) {
+            return validationError($validator);
         }
         try {
             $res = VtSearchGroup::find($data->id);
             if ($res) {
-                    
                 $res->search_group = $data->searchGroup;
-                $res->is_report = ($data->isReport == 'Yes')? true:false;
+                $res->is_report = ($data->isReport == 'Yes') ? true : false;
                 $res->status = 1;
-                $res->parent_id = isset($data->parentId)?$data->parentId:null;
+                $res->parent_id = isset($data->parentId) ? $data->parentId : null;
                 $res->save();
-                
-                return response()->json(['status' => true, 'Message' => "Update successfully"], 200); 
+                return responseMsgs(true, "Updated Successfully", []);
             } else {
-                return response()->json('Id Not Found', 404);
+                throw new Exception("Id not Found");
             }
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
 
@@ -185,31 +184,32 @@ class MasterController extends Controller
         try {
             $arr = array();
             // Check id found form request
-            if($resource->id){
-                $res = DB::table('vt_search_groups')->where('id', $resource->id)->get(); // Particular single record based on id
-            }else{
+            if ($resource->id) {
+                $arr = DB::table('vt_search_groups')->where('id', $resource->id)->first(); // Particular single record based on id
+            } else {
                 $res = DB::table('vt_search_groups')->where('status', 1)->orderByDesc('id')->get(); // All records from table
-            }
-            
-            foreach ($res as $data) {
-                $isReport = 'No';
-                if($data->is_report == true){ $isReport = 'Yes'; }
+                foreach ($res as $data) {
+                    $isReport = 'No';
+                    if ($data->is_report == true) {
+                        $isReport = 'Yes';
+                    }
 
-                $val['id'] = $data->id;
-                $val['search_group'] = $data->search_group;
-                $val['is_report'] = $isReport;
-                $val['status'] = $data->status;
-                $val['parent_id'] = $data->parent_id;
-                array_push($arr, $val);
+                    $val['id'] = $data->id;
+                    $val['search_group'] = $data->search_group;
+                    $val['is_report'] = $isReport;
+                    $val['status'] = $data->status;
+                    $val['parent_id'] = $data->parent_id;
+                    array_push($arr, $val);
+                }
             }
-            return response($arr, 200);
+            return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
-            return response()->json($e, 400);
+            return responseMsgs(false, $e->getMessage(), []);
         }
     }
     /************** Search Group master End **************/
-    
-    
+
+
     /************** String master Start **************/
 
     // For save data in vt_strings table
@@ -219,8 +219,8 @@ class MasterController extends Controller
             'fieldName' => 'required',
             'description' => 'required'
         ]);
-        
-        if ($validator->fails()) {    
+
+        if ($validator->fails()) {
             return response()->json(['Message' => $validator->messages()]);
         }
 
@@ -244,8 +244,8 @@ class MasterController extends Controller
             'fieldName' => 'required',
             'description' => 'required'
         ]);
-        
-        if ($validator->fails()) {    
+
+        if ($validator->fails()) {
             return response()->json(['Message' => $validator->messages()]);
         }
         try {
@@ -254,8 +254,8 @@ class MasterController extends Controller
                 $res->field_name = $data->fieldName;
                 $res->description = $data->description;
                 $res->save();
-                
-                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200); 
+
+                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200);
             } else {
                 return response()->json('Id Not Found', 404);
             }
@@ -270,12 +270,12 @@ class MasterController extends Controller
         try {
             $arr = array();
             // Check id found form request
-            if($resource->id){
+            if ($resource->id) {
                 $res = DB::table('vt_strings')->where('id', $resource->id)->get(); // Particular single record based on id
-            }else{
+            } else {
                 $res = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get(); // All records from table
             }
-            
+
             foreach ($res as $data) {
 
                 $val['id'] = $data->id;
@@ -296,14 +296,14 @@ class MasterController extends Controller
     // For save data in vt_templates table
     public function SaveTemplate(Request $request)
     {
-        
+
         // if ($validator->fails()) {    
         //     return response()->json(['Message' => $validator->messages()]);
         // }
         //$validated = $request->isValidFile(); 
         //$validator = Validator::validate($request);
         //dd($this->failedValidation($request));
-        return $this->Mstr->InsTemplate($request);
+        return $this->_mstr->InsTemplate($request);
     }
 
     // For update data in vt_strings table
@@ -323,12 +323,12 @@ class MasterController extends Controller
         //     'detailSql' => 'required',
         //     'footerSql' => 'required'
         // ]);
-        
+
         // if ($validator->fails()) {    
         //     return response()->json(['Message' => $validator->messages()]);
         // }
         try {
-            return $this->Mstr->upTemplate($data);
+            return $this->_mstr->upTemplate($data);
         } catch (Exception $e) {
             return response()->json([$e, 400]);
         }
@@ -340,12 +340,12 @@ class MasterController extends Controller
         try {
             $arr = array();
             // Check id found form request
-            if($resource->id){
+            if ($resource->id) {
                 $res = DB::table('vt_templates')->where('id', $resource->id)->get(); // Particular single record based on id
-            }else{
+            } else {
                 $res = DB::table('vt_templates')->where('status', 1)->orderByDesc('id')->get(); // All records from table
             }
-            
+
             foreach ($res as $data) {
 
                 $val['id'] = $data->id;
@@ -390,11 +390,10 @@ class MasterController extends Controller
     public function SaveTempPageLayouts(Request $datas)
     {
         //echo count($datas);
-        
+
         try {
-            
-            foreach($datas->request as $res)
-            {
+
+            foreach ($datas->request as $res) {
                 $validator = Validator::make($datas->all(), [
                     'reportTemplate_id.*' => 'required',
                     'fieldType.*' => 'required',
@@ -406,18 +405,17 @@ class MasterController extends Controller
                     'fontName.*' => 'required',
                     'fontSize.*' => 'required',
                 ]);
-                if ($validator->fails()) {    
+                if ($validator->fails()) {
                     return response()->json(['Message' => $validator->messages()]);
                 }
-                
+
                 $data = (object)$res;
-                
+
                 $imagePath = "";
-                if($data->file)
-                {
-                    $imagePath = time().'.JPG';
-                    file_put_contents(public_path('images')."/".$imagePath, $data->file);
-                    
+                if ($data->file) {
+                    $imagePath = time() . '.JPG';
+                    file_put_contents(public_path('images') . "/" . $imagePath, $data->file);
+
                     //$resource->image->move(public_path('images'), $imagePath);
                 }
 
@@ -434,10 +432,10 @@ class MasterController extends Controller
                 $temp_layout->height = $data->height;
                 $temp_layout->font_name = $data->fontName;
                 $temp_layout->font_size = $data->fontSize;
-                $temp_layout->is_underline = ($data->isUnderline == 'Yes') ? true:false;
-                $temp_layout->is_bold = ($data->isBold  == 'Yes') ? true:false;
-                $temp_layout->is_italic = ($data->isItalic  == 'Yes') ? true:false;
-                $temp_layout->is_visible = ($data->isVisible == 'Yes') ? true:false;
+                $temp_layout->is_underline = ($data->isUnderline == 'Yes') ? true : false;
+                $temp_layout->is_bold = ($data->isBold  == 'Yes') ? true : false;
+                $temp_layout->is_italic = ($data->isItalic  == 'Yes') ? true : false;
+                $temp_layout->is_visible = ($data->isVisible == 'Yes') ? true : false;
                 $temp_layout->alignment = $data->alignment;
                 $temp_layout->color = $data->color;
                 $temp_layout->status = 1;
@@ -464,8 +462,8 @@ class MasterController extends Controller
             'fontName' => 'required',
             'fontSize' => 'required',
         ]);
-        
-        if ($validator->fails()) {    
+
+        if ($validator->fails()) {
             return response()->json(['Message' => $validator->messages()]);
         }
         try {
@@ -483,14 +481,14 @@ class MasterController extends Controller
                 $temp_layout->height = $data->height;
                 $temp_layout->font_name = $data->fontName;
                 $temp_layout->font_size = $data->fontSize;
-                $temp_layout->is_underline = ($data->isUnderline == 'Yes') ? true:false;
-                $temp_layout->is_bold = ($data->isBold  == 'Yes') ? true:false;
-                $temp_layout->is_italic = ($data->isItalic  == 'Yes') ? true:false;
-                $temp_layout->is_visible = ($data->isVisible == 'Yes') ? true:false;
+                $temp_layout->is_underline = ($data->isUnderline == 'Yes') ? true : false;
+                $temp_layout->is_bold = ($data->isBold  == 'Yes') ? true : false;
+                $temp_layout->is_italic = ($data->isItalic  == 'Yes') ? true : false;
+                $temp_layout->is_visible = ($data->isVisible == 'Yes') ? true : false;
                 $temp_layout->alignment = $data->alignment;
                 $temp_layout->save();
-                
-                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200); 
+
+                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200);
             } else {
                 return response()->json('Id Not Found', 404);
             }
@@ -505,17 +503,17 @@ class MasterController extends Controller
         try {
             $arr = array();
             // Check id found form request
-            if($resource->id){
+            if ($resource->id) {
                 $res = DB::table('vt_template_pagelayouts')
-                        ->where('id', $resource->id)
-                        ->get(); // Particular single record based on id
-            }else{
+                    ->where('id', $resource->id)
+                    ->get(); // Particular single record based on id
+            } else {
                 $res = DB::table('vt_template_pagelayouts')
-                        ->where('status', 1)
-                        ->orderByDesc('id')
-                        ->get(); // All records from table
+                    ->where('status', 1)
+                    ->orderByDesc('id')
+                    ->get(); // All records from table
             }
-            
+
             foreach ($res as $data) {
 
                 $val['id'] = $data->id;
@@ -561,14 +559,13 @@ class MasterController extends Controller
         //     'fontName' => 'required',
         //     'fontSize' => 'required',
         // ]);
-        
+
         // if ($validator->fails()) {    
         //     return response()->json(['Message' => $validator->messages()]);
         // }
 
         try {
-            foreach($datas->request as $res)
-            {
+            foreach ($datas->request as $res) {
                 $data = (object)$res;
                 $temp_dtls = new VtTemplateDeatil();
                 $temp_dtls->report_template_id = $data->reportTemplate_id;
@@ -579,11 +576,11 @@ class MasterController extends Controller
                 $temp_dtls->font_name = $data->fontName;
                 $temp_dtls->font_size = $data->fontSize;
                 $temp_dtls->width = $data->width;
-                $temp_dtls->is_underline = ($data->isUnderline == 'Yes') ? true:false;
-                $temp_dtls->is_bold = ($data->isBold  == 'Yes') ? true:false;
-                $temp_dtls->is_italic = ($data->isItalic  == 'Yes') ? true:false;
-                $temp_dtls->is_visible = ($data->isVisible == 'Yes') ? true:false;
-                $temp_dtls->is_boxed = ($data->isBoxed == 'Yes') ? true:false;
+                $temp_dtls->is_underline = ($data->isUnderline == 'Yes') ? true : false;
+                $temp_dtls->is_bold = ($data->isBold  == 'Yes') ? true : false;
+                $temp_dtls->is_italic = ($data->isItalic  == 'Yes') ? true : false;
+                $temp_dtls->is_visible = ($data->isVisible == 'Yes') ? true : false;
+                $temp_dtls->is_boxed = ($data->isBoxed == 'Yes') ? true : false;
                 $temp_dtls->alignment = $data->alignment;
                 $temp_dtls->color = $data->color;
                 $temp_dtls->status = 1;
@@ -607,8 +604,8 @@ class MasterController extends Controller
             'fontName' => 'required',
             'fontSize' => 'required',
         ]);
-        
-        if ($validator->fails()) {    
+
+        if ($validator->fails()) {
             return response()->json(['Message' => $validator->messages()]);
         }
         try {
@@ -622,16 +619,16 @@ class MasterController extends Controller
                 $temp_dtls->font_name = $data->fontName;
                 $temp_dtls->font_size = $data->fontSize;
                 $temp_dtls->width = $data->width;
-                $temp_dtls->is_underline = ($data->isUnderline == 'Yes') ? true:false;
-                $temp_dtls->is_bold = ($data->isBold  == 'Yes') ? true:false;
-                $temp_dtls->is_italic = ($data->isItalic  == 'Yes') ? true:false;
-                $temp_dtls->is_visible = ($data->isVisible == 'Yes') ? true:false;
-                $temp_dtls->is_boxed = ($data->isBoxed == 'Yes') ? true:false;
+                $temp_dtls->is_underline = ($data->isUnderline == 'Yes') ? true : false;
+                $temp_dtls->is_bold = ($data->isBold  == 'Yes') ? true : false;
+                $temp_dtls->is_italic = ($data->isItalic  == 'Yes') ? true : false;
+                $temp_dtls->is_visible = ($data->isVisible == 'Yes') ? true : false;
+                $temp_dtls->is_boxed = ($data->isBoxed == 'Yes') ? true : false;
                 $temp_dtls->alignment = $data->alignment;
                 $temp_dtls->color = $data->color;
                 $temp_dtls->save();
-                
-                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200); 
+
+                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200);
             } else {
                 return response()->json('Id Not Found', 404);
             }
@@ -646,17 +643,17 @@ class MasterController extends Controller
         try {
             $arr = array();
             // Check id found form request
-            if($resource->id){
+            if ($resource->id) {
                 $res = DB::table('vt_template_deatils')
-                        ->where('id', $resource->id)
-                        ->get(); // Particular single record based on id
-            }else{
+                    ->where('id', $resource->id)
+                    ->get(); // Particular single record based on id
+            } else {
                 $res = DB::table('vt_template_deatils')
-                        ->where('status', 1)
-                        ->orderByDesc('id')
-                        ->get(); // All records from table
+                    ->where('status', 1)
+                    ->orderByDesc('id')
+                    ->get(); // All records from table
             }
-            
+
             foreach ($res as $data) {
 
                 $val['id'] = $data->id;
@@ -700,14 +697,13 @@ class MasterController extends Controller
         //     'fontname' => 'required',
         //     'size' => 'required',
         // ]);
-        
+
         // if ($validator->fails()) {    
         //     return response()->json(['Message' => $validator->messages()]);
         // }
 
         try {
-            foreach($datas->request as $res)
-            {
+            foreach ($datas->request as $res) {
                 $data = (object)$res;
                 $temp_footer = new VtTemplateFooter();
                 $temp_footer->report_template_id = $data->reportTemplate_id;
@@ -722,10 +718,10 @@ class MasterController extends Controller
                 $temp_footer->height = $data->height;
                 $temp_footer->fontname = $data->fontname;
                 $temp_footer->size = $data->size;
-                $temp_footer->is_underline = ($data->isUnderline == 'Yes') ? true:false;
-                $temp_footer->is_bold = ($data->isBold  == 'Yes') ? true:false;
-                $temp_footer->is_italic = ($data->isItalic  == 'Yes') ? true:false;
-                $temp_footer->is_visible = ($data->isVisible == 'Yes') ? true:false;
+                $temp_footer->is_underline = ($data->isUnderline == 'Yes') ? true : false;
+                $temp_footer->is_bold = ($data->isBold  == 'Yes') ? true : false;
+                $temp_footer->is_italic = ($data->isItalic  == 'Yes') ? true : false;
+                $temp_footer->is_visible = ($data->isVisible == 'Yes') ? true : false;
                 $temp_footer->alignment = $data->alignment;
                 $temp_footer->color = $data->color;
                 $temp_footer->status = 1;
@@ -749,8 +745,8 @@ class MasterController extends Controller
             'fontname' => 'required',
             'size' => 'required',
         ]);
-        
-        if ($validator->fails()) {    
+
+        if ($validator->fails()) {
             return response()->json(['Message' => $validator->messages()]);
         }
         try {
@@ -768,15 +764,15 @@ class MasterController extends Controller
                 $temp_footer->height = $data->height;
                 $temp_footer->fontname = $data->fontname;
                 $temp_footer->size = $data->size;
-                $temp_footer->is_underline = ($data->isUnderline == 'Yes') ? true:false;
-                $temp_footer->is_bold = ($data->isBold  == 'Yes') ? true:false;
-                $temp_footer->is_italic = ($data->isItalic  == 'Yes') ? true:false;
-                $temp_footer->is_visible = ($data->isVisible == 'Yes') ? true:false;
+                $temp_footer->is_underline = ($data->isUnderline == 'Yes') ? true : false;
+                $temp_footer->is_bold = ($data->isBold  == 'Yes') ? true : false;
+                $temp_footer->is_italic = ($data->isItalic  == 'Yes') ? true : false;
+                $temp_footer->is_visible = ($data->isVisible == 'Yes') ? true : false;
                 $temp_footer->alignment = $data->alignment;
                 $temp_footer->color = $data->color;
                 $temp_footer->save();
-                
-                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200); 
+
+                return response()->json(['status' => true, 'Message' => "Updated successfully"], 200);
             } else {
                 return response()->json('Id Not Found', 404);
             }
@@ -791,17 +787,17 @@ class MasterController extends Controller
         try {
             $arr = array();
             // Check id found form request
-            if($resource->id){
+            if ($resource->id) {
                 $res = DB::table('vt_template_footers')
-                        ->where('id', $resource->id)
-                        ->get(); // Particular single record based on id
-            }else{
+                    ->where('id', $resource->id)
+                    ->get(); // Particular single record based on id
+            } else {
                 $res = DB::table('vt_template_footers')
-                        ->where('status', 1)
-                        ->orderByDesc('id')
-                        ->get(); // All records from table
+                    ->where('status', 1)
+                    ->orderByDesc('id')
+                    ->get(); // All records from table
             }
-            
+
             foreach ($res as $data) {
 
                 $val['id'] = $data->id;
@@ -837,15 +833,14 @@ class MasterController extends Controller
     {
         try {
             $menuarr = array();
-            
+
             $grpList = DB::table('vt_search_groups')
-                        ->where('status', 1)
-                        ->get();
+                ->where('status', 1)
+                ->get();
             $arr = array();
             $subarr = array();
             $pid = 0;
-            foreach ($grpList as $grp) 
-            {
+            foreach ($grpList as $grp) {
                 //if((empty($grp->parent_id) || $grp->parent_id == 0))
                 {
                     $pid = $grp->id;
@@ -856,7 +851,7 @@ class MasterController extends Controller
                     array_push($menuarr, $arr);
                 }
             }
-            
+
             return response($menuarr, 200);
         } catch (Exception $e) {
             return response()->json($e, 400);
@@ -867,44 +862,41 @@ class MasterController extends Controller
     {
         $menuarr = array();
         $tempList = DB::table('vt_templates')
-                    ->where('search_group_id', $parentmenu_id)
-                    ->get();
-        
-        foreach($tempList as $temp)
-        {
+            ->where('search_group_id', $parentmenu_id)
+            ->get();
+
+        foreach ($tempList as $temp) {
             $childarr['menu_id'] = $temp->id;
             $childarr['menu_name'] = $temp->template_name;
             $childarr['menu_code'] = $temp->template_code;
             $childarr['type'] = 'Child template';
             $submenu = array();
-            if($temp->detail_layout == 'General' || $temp->detail_layout == 'Form')
-            {
+            if ($temp->detail_layout == 'General' || $temp->detail_layout == 'Form') {
                 $childarr1['menu_id'] = 1;
                 $childarr1['menu_name'] = 'Layout';
                 $childarr1['menu_code'] = 'Layout';
-                $childarr1['type'] = $temp->detail_layout.' template';
+                $childarr1['type'] = $temp->detail_layout . ' template';
                 array_push($submenu, $childarr1);
-                
+
                 $childarr2['menu_id'] = 2;
                 $childarr2['menu_name'] = 'Details';
                 $childarr2['menu_code'] = 'Details';
-                $childarr2['type'] = $temp->detail_layout.' template';
+                $childarr2['type'] = $temp->detail_layout . ' template';
                 array_push($submenu, $childarr2);
-                
+
                 $childarr3['menu_id'] = 3;
                 $childarr3['menu_name'] = 'Footer';
                 $childarr3['menu_code'] = 'Footer';
-                $childarr3['type'] = $temp->detail_layout.' template';
+                $childarr3['type'] = $temp->detail_layout . ' template';
                 array_push($submenu, $childarr3);
             }
 
-            if($temp->detail_layout == 'Label' || $temp->detail_layout == 'Document')
-            {
+            if ($temp->detail_layout == 'Label' || $temp->detail_layout == 'Document') {
                 $childarr1['menu_id'] = 1;
                 $childarr1['menu_name'] = 'Layout';
                 $childarr1['menu_code'] = 'Layout';
-                $childarr1['type'] = $temp->detail_layout.' template';
-                array_push($submenu, $childarr1); 
+                $childarr1['type'] = $temp->detail_layout . ' template';
+                array_push($submenu, $childarr1);
             }
             $childarr['submenu'] = $submenu;
             array_push($menuarr, $childarr);
@@ -912,8 +904,4 @@ class MasterController extends Controller
         //echo "<pre/>";print_r($menuarr);
         return $menuarr;
     }
-
-
-    
-
 }
