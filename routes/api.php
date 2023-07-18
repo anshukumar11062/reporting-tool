@@ -43,7 +43,7 @@ Route::controller(MasterController::class)->group(function () {
     Route::post('v1/resource/save', 'resourceSave');
     Route::post('v1/resource/update', 'resourceUpdate');
     Route::post('v1/resource/view', 'getresource');
-    Route::post('v1/resource/list', 'getresource');
+    Route::post('v1/resource/deactivate', 'deactivateResource');
 
     /*
     |--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ Route::controller(MasterController::class)->group(function () {
     Route::post('v1/group/save', 'saveGroup');
     Route::post('v1/group/update', 'updateGroup');
     Route::post('v1/group/view', 'getGroup');
-    Route::post('v1/group/list', 'getGroup');
+    Route::post('v1/group/deactivate', 'deactivateGroup');
 
     /*
     |--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ Route::controller(MasterController::class)->group(function () {
     Route::post('v1/string/save', 'saveString');
     Route::post('v1/string/update', 'updateString');
     Route::post('v1/string/view', 'getString');
-    Route::post('v1/string/list', 'getString');
+    Route::post('v1/string/deactivate', 'deactivateString');
 
     /*
     |--------------------------------------------------------------------------
@@ -80,20 +80,18 @@ Route::controller(MasterController::class)->group(function () {
     | Tempalte Page Layouts
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/templatePL/save', 'SaveTempPageLayouts');
-    Route::put('v1/templatePL/update/{id}', 'UpdateTempPageLayouts');
-    Route::get('v1/templatePL/view/{id}', 'GetTempPageLayouts');
-    Route::get('v1/templatePL/list', 'GetTempPageLayouts');
+    Route::post('v1/template-pl/save', 'saveTempPageLayouts');
+    Route::post('v1/template-pl/update', 'updateTempPageLayouts');
+    Route::post('v1/template-pl/view', 'getTempPageLayouts');
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte Details
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/templateDtl/save', 'SaveTempDetails');
-    Route::put('v1/templateDtl/update/{id}', 'UpdateTempDetails');
-    Route::get('v1/templateDtl/view/{id}', 'GetTempDetails');
-    Route::get('v1/templateDtl/list', 'GetTempDetails');
+    Route::post('v1/template-dtl/save', 'saveTempDetails');
+    Route::post('v1/template-dtl/update', 'updateTempDetails');
+    Route::post('v1/template-dtl/view', 'getTempDetails');
 
     /*
     |--------------------------------------------------------------------------
@@ -113,5 +111,4 @@ Route::controller(Controller::class)->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::post('v1/getreport/template', 'GenPDFArr');
-    Route::post('v1/getreport/template1', 'check');
 });

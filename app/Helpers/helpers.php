@@ -93,7 +93,6 @@ if (!function_exists("tableSchema")) {
     {
         $response = array();
         $response['payload'] = array();
-        $table = 'vt_templates';
         $schema = Schema::getColumnListing($table);
         foreach ($schema as $value) {
             $field_name = str_replace('_', '', ucwords($value, '_'));
