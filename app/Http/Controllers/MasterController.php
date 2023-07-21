@@ -229,6 +229,30 @@ class MasterController extends Controller
             return responseMsgs(false, $e->getMessage(), []);
         }
     }
+
+    // Deactive group
+    public function deactivateGroup(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return validationError($validator);
+        }
+        try {
+            $resource = VtSearchGroup::find($req->id);
+            if (collect($resource)->isEmpty())
+                throw new Exception("Search Group not Found");
+            $resource->update([
+                'status' => 0
+            ]);
+            return responseMsgs(true, "Deleted Successfully", []);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
+    }
+
     /************** Search Group master End **************/
 
 
@@ -296,6 +320,29 @@ class MasterController extends Controller
                 $arr = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get(); // All records from table
 
             return responseMsgs(true, "Fetched Data", remove_null($arr));
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
+    }
+
+    // Deactivate String
+    public function deactivateString(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return validationError($validator);
+        }
+        try {
+            $resource = VtString::find($req->id);
+            if (collect($resource)->isEmpty())
+                throw new Exception("Search Group not Found");
+            $resource->update([
+                'status' => 0
+            ]);
+            return responseMsgs(true, "Deleted Successfully", []);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
