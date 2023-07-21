@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Bll\GenerateReportBll;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -37,6 +38,7 @@ class Controller extends BaseController
     {
 
         $report = (array)$this->Pdfapi->GetTempData($req->id);
+
         if ($report) {
             $report['layout'] = array();
             $report['layout_data'] = array();
@@ -80,6 +82,7 @@ class Controller extends BaseController
     */
     function GenPDFArr(Request $reqarr)
     {
+        $bllReport = new GenerateReportBll;
         if ($reqarr) {
             foreach ($this->Pdfapi->GetDatafromQuery($reqarr['layout_sql']) as $layout)
                 $reqarr['layout_data'][] = $layout;
@@ -100,12 +103,9 @@ class Controller extends BaseController
                 $reqarr['footer_data'] = array();
 
 
-            return response(($this->layout->create_report($reqarr)), 200, [
+            return response(($bllReport->createReport($reqarr)), 200, [
                 'Content-type'        => 'application/pdf',
             ]);
-
-            //return $this->layout->create_report($reqarr);
-
         } else {
             return response()->json(['status' => 0, 'msg' => 'Record not found!'], 400);
         }

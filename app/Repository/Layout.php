@@ -48,62 +48,62 @@ class Layout extends FPDF
         }
 
 
-        if ($report['detail_layout'] == 'Label') {
-            $this->fpdf->AliasNbPages();
-            $this->fpdf->AddPage();
-            $this->fpdf->Ln($report['header_height']);
-            $this->LabelLayout($report, $this->fpdf);
-            $this->fpdf->Ln($report['footer_height']);
-        }
+        // if ($report['detail_layout'] == 'Label') {
+        //     $this->fpdf->AliasNbPages();
+        //     $this->fpdf->AddPage();
+        //     $this->fpdf->Ln($report['header_height']);
+        //     $this->LabelLayout($report, $this->fpdf);
+        //     $this->fpdf->Ln($report['footer_height']);
+        // }
 
 
-        if ($report['detail_layout'] == 'Form') {
+        // if ($report['detail_layout'] == 'Form') {
 
-            $newArr = array();
+        //     $newArr = array();
 
-            for ($i = 0; $i < count($report['layout']); $i++) {
-                $data = array();
-                $data['layout'] = $report['layout'][$i];
-                $data['layout_data'] = $report['layout_data'];
-                if (count($report['details']) > 0 && $i < count($report['details']))
-                    $data['details'] = $report['details'][$i];
-                if (count($report['footer']) > 0 && $i < count($report['footer']))
-                    $data['footer'] = $report['footer'][$i];
-                $newArr[] = $data;
-            }
+        //     for ($i = 0; $i < count($report['layout']); $i++) {
+        //         $data = array();
+        //         $data['layout'] = $report['layout'][$i];
+        //         $data['layout_data'] = $report['layout_data'];
+        //         if (count($report['details']) > 0 && $i < count($report['details']))
+        //             $data['details'] = $report['details'][$i];
+        //         if (count($report['footer']) > 0 && $i < count($report['footer']))
+        //             $data['footer'] = $report['footer'][$i];
+        //         $newArr[] = $data;
+        //     }
 
-            foreach ($newArr as $lat) {
-                $last = last($report['layout']);
-                if ($last != $lat) {
-                    $ori = ($report['is_landscape'] == true) ? 'L' : 'P';
-                    $size = ($report['paper_size_enum']) ? $report['paper_size_enum'] : '210,297';
-                    $headerHeight = $report['header_height'];
-                    if ($this->fpdf->PageNo() > 0)
-                        $headerHeight = $report['header_height_page2'];
-                    $this->fpdf->SetTopMargin(10 + $headerHeight);
-                    $this->fpdf->AddPage($ori, explode(',', $size));
-                    $this->FormLayout($lat, $this->fpdf);
-                    $this->fpdf->Ln($report['footer_height']);
-                }
-                //$newArr
-            }
-        }
+        //     foreach ($newArr as $lat) {
+        //         $last = last($report['layout']);
+        //         if ($last != $lat) {
+        //             $ori = ($report['is_landscape'] == true) ? 'L' : 'P';
+        //             $size = ($report['paper_size_enum']) ? $report['paper_size_enum'] : '210,297';
+        //             $headerHeight = $report['header_height'];
+        //             if ($this->fpdf->PageNo() > 0)
+        //                 $headerHeight = $report['header_height_page2'];
+        //             $this->fpdf->SetTopMargin(10 + $headerHeight);
+        //             $this->fpdf->AddPage($ori, explode(',', $size));
+        //             $this->FormLayout($lat, $this->fpdf);
+        //             $this->fpdf->Ln($report['footer_height']);
+        //         }
+        //         //$newArr
+        //     }
+        // }
 
-        if ($report['detail_layout'] == 'Document') {
+        // if ($report['detail_layout'] == 'Document') {
 
-            $docarr = collect($report['layout'])->groupBy('page_no');
-            for ($i = 1; $i <= count($docarr); $i++) {
-                $ori = ($report['is_landscape'] == true) ? 'L' : 'P';
-                $size = ($report['paper_size_enum']) ? $report['paper_size_enum'] : '210,297';
-                $headerHeight = $report['header_height'];
-                if ($this->fpdf->PageNo() > 0)
-                    $headerHeight = $report['header_height_page2'];
-                $this->fpdf->SetTopMargin(10 + $headerHeight);
-                $this->fpdf->AddPage($ori, explode(',', $size));
-                $this->DocumentLayout($docarr[$i], $this->fpdf);
-                $this->fpdf->Ln($report['footer_height']);
-            }
-        }
+        //     $docarr = collect($report['layout'])->groupBy('page_no');
+        //     for ($i = 1; $i <= count($docarr); $i++) {
+        //         $ori = ($report['is_landscape'] == true) ? 'L' : 'P';
+        //         $size = ($report['paper_size_enum']) ? $report['paper_size_enum'] : '210,297';
+        //         $headerHeight = $report['header_height'];
+        //         if ($this->fpdf->PageNo() > 0)
+        //             $headerHeight = $report['header_height_page2'];
+        //         $this->fpdf->SetTopMargin(10 + $headerHeight);
+        //         $this->fpdf->AddPage($ori, explode(',', $size));
+        //         $this->DocumentLayout($docarr[$i], $this->fpdf);
+        //         $this->fpdf->Ln($report['footer_height']);
+        //     }
+        // }
 
 
 

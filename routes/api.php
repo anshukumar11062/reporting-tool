@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,4 +112,11 @@ Route::controller(Controller::class)->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::post('v1/getreport/template', 'GenPDFArr');
+});
+
+/**
+ * | Report Generation Controller
+ */
+Route::controller(ReportController::class)->group(function () {
+    Route::post('v1/report/generate', 'reportGenerate');
 });
