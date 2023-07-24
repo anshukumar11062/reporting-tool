@@ -2,6 +2,7 @@
 
 namespace App\Bll;
 
+use App\Traits\Api\PdfHelpers;
 use Codedge\Fpdf\Fpdf\Fpdf;
 
 
@@ -11,8 +12,9 @@ use Codedge\Fpdf\Fpdf\Fpdf;
  * | Created for Reports layout previews
  */
 
-class GenerateReportBll
+class GenerateReportBll extends Fpdf
 {
+    use PdfHelpers;
     private $_fPdf;
     // Initialization
     public function __construct()
@@ -24,193 +26,44 @@ class GenerateReportBll
     public function createReport($req)
     {
         // Check template look is default or according to the tempalte attributs for styling
-        if ($req['is_default'] == false) {
-            $ori = ($req['is_landscape'] == true) ? 'L' : 'P';
-            $size = ($req['paper_size_enum']) ? $req['paper_size_enum'] : '210,297';
+        if ($req->template['isDefault'] == false) {
+            $ori = ($req->template['isLandscape'] == true) ? 'L' : 'P';
+            $size = ($req->template['paperSizeEnum']) ? $req->template['paperSizeEnum'] : '210,297';
             $this->_fPdf = new Fpdf($ori, 'mm', explode(',', $size));
-            $this->_fPdf->Ln($req['footer_height']);
+            $this->_fPdf->Ln($req->template['footerHeight']);
         }
 
+        $this->_fPdf->AliasNbPages();
+        $this->_fPdf->AddPage();
 
+        if (isset($req->layouts)) {                                         // Layout 
+            foreach ($req->layouts as $layout) {
+                $layout = (object)$layout;
+                if ($layout->fieldType == 'caption')                       // Caption
+                    $this->generateCaption($layout);
+                elseif ($layout->fieldType == 'resourse')
+                    $this->generateResource($layout);
 
-        //$this->_fPdf->SetTopMargin($req['header_height']);
-        $this->_fPdf->Ln($req['header_distance']);
-
-        if ($req['detail_layout'] == 'General') {
-            $this->_fPdf->AliasNbPages();
-            $this->_fPdf->AddPage();
-            $this->_fPdf->Ln($req['header_height']);
-            $this->generalLayout($req);
-            $this->_fPdf->Ln($req['footer_height']);
+                $this->_fPdf->Ln();                                         // Set it new line
+            }
         }
 
-        $this->_fPdf->Output();
+        $response = $this->_fPdf->Output();
+        return $response;
     }
 
-
-    // Generate General Reports
-    public function generalLayout($req)
+    // generate Caption
+    public function generateCaption($layout)
     {
-        /*
-        *********************************************************
-        * Create dynamic template layout of every elements 
-        *********************************************************
-        */
-        foreach ($req['layout'] as $lat) {
-            $lat = (object) $lat;
-            $x = $this->_fPdf->GetX();
-            $y = $this->_fPdf->GetY();
-            $lat->border = '0';
-            $lat->position = '1';
-            $this->getElement($lat, false, $this->_fPdf);
-            $this->_fPdf->SetXY($x + $lat->width, $y + $lat->height);
-        }
-
-        $this->_fPdf->Ln($req['detail_line_spacing']);
-
-
-        /*
-        *****************************************************************************
-        * Create dynamic Template Details of according to template details_sql 
-        *****************************************************************************
-        */
-        $this->_fPdf->SetFillColor(255);
-        // Header for details table
-
-        foreach ($req['details'] as $h) {
-            $h = (object) $h;
-            $h->height = '8';
-            $h->border = '1';
-            $h->position = '0';
-            $this->getElement($h, true, $this->_fPdf);
-        }
-        $this->_fPdf->Ln();
-
-        // Data for details table
-        $fill = false;
-        foreach ($req['details_data'] as $row) {
-            $row = (object) $row;
-            foreach ($req['details'] as $h) {
-                $h = (object) $h;
-                $res = str_replace(' ', '_', str_replace('.', '', strtolower(trim($h->field_name))));
-                $h->field_data = ($row->{$res}) ? $row->{$res} : '-';
-                $h->height = '8';
-                $h->border = '1';
-                $h->position = '0';
-                $this->getElement($h, $fill, $this->_fPdf);
-                $fill = !$fill;
-            }
-            $this->_fPdf->Ln();
-        }
-        $this->_fPdf->Ln(10);
-
-
-        /*
-        *****************************************************************************
-        * Template Footer according to template footer 
-        *****************************************************************************
-        */
-        foreach ($req['footer'] as $foot) {
-            $foot = (object) $foot;
-            $x = $this->_fPdf->GetX();
-            $y = $this->_fPdf->GetY();
-            $foot->border = '0';
-            $foot->position = '1';
-            $foot->font_name = $foot->fontname;
-            $foot->font_size = $foot->size;
-            $this->_fPdf->SetXY($x + $foot->x, $y + $foot->y);
-            $this->getElement($foot, $fill, $this->_fPdf);
-
-            //$fpdf->Ln();
-
-        }
+        $fontWeight = $this->style($layout->isBold, $layout->isItalic, $layout->isUnderline);
+        $this->_fPdf->SetTextColor(hexdec($layout->color));
+        $this->_fPdf->SetFont($layout->fontName, $fontWeight, $layout->fontSize);
+        $this->_fPdf->Cell($layout->x, $layout->y, $layout->caption, 0, 0,  $layout->alignment);
     }
 
-    /**
-     * Create Line in template
-     * @param fieldtype $field, all data for parameter in array $data, for cell using true or false value $fill, get current create pdf page $fpdf
-     * @return element as image with position
-     */
-
-    public function getElement(object $data, $fill, $fpdf)
+    // Generate Resourse
+    public function generateResource($layout)
     {
-        //print_r($data);
-        $elem = '';
-        $field = $data->field_type;
-        $style = $this->style($data->is_bold, $data->is_italic, $data->is_underline);
-        $fpdf->SetFont($data->font_name, $style, $data->font_size);
-        $fpdf->SetTextColor(hexdec($data->color));
-        $align = ucfirst(substr($data->alignment, 0, 1));
-
-
-        if ($data->is_visible) {
-            //echo $data->width;
-            if ($field == 'line') {
-                if ($data->width)
-                    $elem = $fpdf->Line($data->x, $data->y, $data->width, $data->y);
-                else
-                    $elem = $fpdf->Line($data->x, $data->y, $data->height, $data->y);
-            }
-
-            if ($field == 'image') {
-                $url = public_path('images') . "/" . $data->resource;
-                if (file_exists($url))
-                    $elem = $fpdf->Image($url, $data->x, $data->y, $data->width, $data->height, '');
-            }
-
-
-            if ($field == 'field') {
-                $colval = $data->field_name;
-                if (isset($data->field_data))
-                    $colval = $data->field_data;
-                if ($data->position == 'multicell')
-                    $elem = $fpdf->MultiCell($data->width, $data->height, $colval, $data->border, $align, $fill);
-                else
-                    $elem = $fpdf->Cell($data->width, $data->height, $colval, $data->border, $data->position, $align, $fill);
-            }
-
-            if ($field == 'caption') {
-                if ($data->position == 'multicell')
-                    $elem = $fpdf->MultiCell($data->width, $data->height, $data->caption, $data->border, $align, $fill);
-                else
-                    $elem = $fpdf->Cell($data->width, $data->height, $data->caption, $data->border, $data->position, $align, $fill);
-            }
-
-
-            if ($field == 'box')
-                $elem = $fpdf->Rect($data->x, $data->y, $data->width, $data->height, 'DF');
-
-
-
-            return $elem;
-        }
-    }
-
-
-    /*
-    *************************************
-    * Check wich style is prefer
-    *************************************
-    */
-
-    static function style($bold, $italic, $underline)
-    {
-        $style = '';
-        if ($bold == true && $italic == true && $underline == true) {
-            $style = 'BIU';
-        } else if ($bold == true && $italic == true) {
-            $style = 'BI';
-        } else if ($italic == true && $underline == true) {
-            $style = 'IU';
-        } else if ($bold == true && $underline == true) {
-            $style = 'BU';
-        } else if ($bold == true) {
-            $style = 'B';
-        } else if ($italic == true) {
-            $style = 'I';
-        } else if ($underline == true) {
-            $style = 'U';
-        }
-        return $style;
+        $this->_fPdf->Image($layout->resoursePath, $layout->x, $layout->y, $layout->width, $layout->height);
     }
 }
