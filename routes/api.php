@@ -119,4 +119,5 @@ Route::controller(Controller::class)->group(function () {
  */
 Route::controller(ReportController::class)->group(function () {
     Route::post('v1/report/generate', 'reportGenerate');
+    Route::post('v1/report/query-result', 'queryResult');                  // Get Report Query Result
 });

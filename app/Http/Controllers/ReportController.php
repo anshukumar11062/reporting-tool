@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Bll\GenerateReportBll;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 /**
  * | Author - Anshu Kumar
@@ -23,29 +26,35 @@ class ReportController extends Controller
     //
     public function reportGenerate(Request $req)
     {
-        // $this->_fPdf->AliasNbPages();
-        // $this->_fPdf->AddPage();
-        // // Set Header
-        // $this->_fPdf->SetFont('Arial', 'B', 15);
-        // /* Move to the right */
-        // $this->_fPdf->Cell(60);
-        // $this->_fPdf->Cell(70, 10, 'Page Heading', 0, 0, 'C');
-
-        // // Set Footer
-        // /* Position at 1.5 cm from bottom */
-        // $this->_fPdf->SetY(-31);
-        // /* Arial italic 8 */
-        // $this->_fPdf->SetFont('Arial', 'I', 8);
-        // /* Page number */
-        // $this->_fPdf->Cell(0, 10, 'Page ' . $this->_fPdf->PageNo() . '/{nb}', 0, 0, 'C');
-
-        // $this->_fPdf->SetFont('Times', '', 12);
-
         try {
             $response = $this->_generateReportBll->createReport($req);
             return response($response, 200, [
                 'Content-type'        => 'application/pdf',
             ]);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
+    }
+
+    /**
+     * | Get Query Result
+     */
+    public function queryResult(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'requestQuery' => 'required|string'
+        ]);
+
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $query = $req->requestQuery;
+            $lowerQuery = Str::lower($query);
+            $strQuery = Str::contains($lowerQuery, ['update', 'delete', 'insert']);
+            if ($strQuery)
+                throw new Exception("Unauthorized Query");
+            $queryResult = DB::select($query);
+            return responseMsgs(true, "Query Result", remove_null($queryResult));
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
