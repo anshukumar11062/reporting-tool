@@ -2,12 +2,23 @@
 
 namespace App\Http\Requests;
 
+use App\Bll\SaveTemplateBll;
+use App\Models\VtSearchGroup;
+use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator as ValidationValidator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class TemplateRequest extends FormRequest
 {
+    private $_mVtSearchGroup;
+    private $_saveTemplateBll;
+    public function __construct()
+    {
+        $this->_mVtSearchGroup = new VtSearchGroup();
+        $this->_saveTemplateBll = new SaveTemplateBll;
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -25,7 +36,22 @@ class TemplateRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+        $searchGroup = $this->_mVtSearchGroup::find($this->template['searchGroupId']);
+
+        if (collect($searchGroup)->isEmpty()) {
+            throw new HttpResponseException(
+                response()->json(
+                    [
+                        'status' => false,
+                        'message' => 'Search Group not Available',
+                        'data' => []
+                    ]
+                )
+            );
+        }
+
+        $this->_saveTemplateBll->_isPdfReport = $searchGroup->is_report;
+        $validation = [
             "template" => "required|array",                         // Template Validation
             "template.searchGroupId" => "required|integer",
             "template.templateCode" => "required|string",
@@ -53,63 +79,84 @@ class TemplateRequest extends FormRequest
             "template.labelColumnCount" => "nullable|integer",
             "template.isDetailWordwrap" => "required|bool",
             "template.isCompactFooter" => "required|bool",
-
-            "layouts" => 'required|array',                      // Layout Validation
-            'layouts.*.fieldType' => 'required',
-            'layouts.*.caption' => 'required',
-            'layouts.*.fieldName' => 'required',
-            'layouts.*.pageNo' => 'required',
-            'layouts.*.x' => 'required',
-            'layouts.*.y' => 'required',
-            'layouts.*.width' => 'required',
-            'layouts.*.height' => 'required',
-            'layouts.*.fontName' => 'required',
-            'layouts.*.fontSize' => 'required',
-            'layouts.*.isUnderline' => 'required|bool',
-            'layouts.*.isBold' => 'required|bool',
-            'layouts.*.isItalic' => 'required|bool',
-            'layouts.*.isVisible' => 'required|bool',
-            'layouts.*.alignment' => 'required',
-            'layouts.*.color' => 'required',
-            'layouts.*.file' =>  'mimes:jpeg,jpg,png,gif|nullable|max:10000', // max 10000kb,
-
-
-            'details' => 'required|array',                      // Details Validation
-            'details.*.x' => 'required|numeric',
-            'details.*.y' => 'required|numeric',
-            'details.*.fieldType' => 'required|string',
-            'details.*.fieldName' => 'required|string',
-            'details.*.fontName' => 'required|string',
-            'details.*.fontSize' => 'required|string',
-            'details.*.width' => 'required|integer',
-            'details.*.isUnderline' => 'required|bool',
-            'details.*.isBold' => 'required|bool',
-            'details.*.isItalic' => 'required|bool',
-            'details.*.isVisible' => 'required|bool',
-            'details.*.isBoxed' => 'required|bool',
-            'details.*.alignment' => 'required|string',
-            'details.*.color' => 'required|string',
-
-            'footer' => 'required|array',
-            'footer.*.serialNo' => 'required|integer',
-            'footer.*.fieldType' => 'required',
-            'footer.*.caption' => 'required',
-            'footer.*.fieldName' => 'required|string',
-            // 'footer.resource' => 'required|string',
-            'footer.*.x' => 'required|numeric',
-            'footer.*.y' => 'required|numeric',
-            'footer.*.width' => 'required|numeric',
-            'footer.*.height' => 'required|numeric',
-            'footer.*.fontname' => 'required',
-            'footer.*.size' => 'required',
-            'footer.*.isUnderline' => 'required|bool',
-            'footer.*.isBold' => 'required|bool',
-            'footer.*.isItalic' => 'required|bool',
-            'footer.*.isVisible' => 'required|bool',
-            'footer.*.isBoxed' => 'required|bool',
-            'footer.*.alignment' => 'required|string',
-            'footer.*.color' => 'required|string',
         ];
+
+        if ($this->_saveTemplateBll->_isPdfReport) {                // Validations for Pdf Reports
+            $validation = array_merge($validation, [
+                "layouts" => 'required|array',                      // Layout Validation
+                'layouts.*.fieldType' => 'required',
+                'layouts.*.caption' => 'required',
+                'layouts.*.fieldName' => 'required',
+                'layouts.*.pageNo' => 'required',
+                'layouts.*.x' => 'required',
+                'layouts.*.y' => 'required',
+                'layouts.*.width' => 'required',
+                'layouts.*.height' => 'required',
+                'layouts.*.fontName' => 'required',
+                'layouts.*.fontSize' => 'required',
+                'layouts.*.isUnderline' => 'required|bool',
+                'layouts.*.isBold' => 'required|bool',
+                'layouts.*.isItalic' => 'required|bool',
+                'layouts.*.isVisible' => 'required|bool',
+                'layouts.*.alignment' => 'required',
+                'layouts.*.color' => 'required',
+                'layouts.*.file' =>  'mimes:jpeg,jpg,png,gif|nullable|max:10000', // max 10000kb,
+
+
+                'details' => 'required|array',                      // Details Validation
+                'details.*.x' => 'required|numeric',
+                'details.*.y' => 'required|numeric',
+                'details.*.fieldType' => 'required|string',
+                'details.*.fieldName' => 'required|string',
+                'details.*.fontName' => 'required|string',
+                'details.*.fontSize' => 'required|string',
+                'details.*.width' => 'required|integer',
+                'details.*.isUnderline' => 'required|bool',
+                'details.*.isBold' => 'required|bool',
+                'details.*.isItalic' => 'required|bool',
+                'details.*.isVisible' => 'required|bool',
+                'details.*.isBoxed' => 'required|bool',
+                'details.*.alignment' => 'required|string',
+                'details.*.color' => 'required|string',
+
+                'footer' => 'required|array',
+                'footer.*.serialNo' => 'required|integer',
+                'footer.*.fieldType' => 'required',
+                'footer.*.caption' => 'required',
+                'footer.*.fieldName' => 'required|string',
+                // 'footer.resource' => 'required|string',
+                'footer.*.x' => 'required|numeric',
+                'footer.*.y' => 'required|numeric',
+                'footer.*.width' => 'required|numeric',
+                'footer.*.height' => 'required|numeric',
+                'footer.*.fontname' => 'required',
+                'footer.*.size' => 'required',
+                'footer.*.isUnderline' => 'required|bool',
+                'footer.*.isBold' => 'required|bool',
+                'footer.*.isItalic' => 'required|bool',
+                'footer.*.isVisible' => 'required|bool',
+                'footer.*.isBoxed' => 'required|bool',
+                'footer.*.alignment' => 'required|string',
+                'footer.*.color' => 'required|string',
+            ]);
+        }
+
+        if ($this->_saveTemplateBll->_isPdfReport == false) {       // Validation for Search Report Formats
+            $validation = array_merge($validation, [
+                "parameters" => "required|array",
+                "parameters.*.serial" => "required|integer",
+                "parameters.*.controlName" => "required|string",
+                "parameters.*.displayString" => "required|string",
+                "parameters.*.controlType" => "required|string",
+                "parameters.*.linkName" => "required|string",
+                "parameters.*.sourceSql" => "required|string",
+                "parameters.*.boundColumn" => "required|string",
+                "parameters.*.displayColumn" => "required|string",
+                "parameters.*.dependencyControlCode" => "required|string",
+            ]);
+        }
+
+        return $validation;
     }
 
     // Validation Error Message

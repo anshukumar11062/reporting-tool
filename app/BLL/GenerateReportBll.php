@@ -175,14 +175,14 @@ class GenerateReportBll
 
     /**
      * |
-     *  +-----------------------+
+     * +-----------------------+
      * |  Footer!   |
      * +-----------------------+
      * |
      */
     public function generateFooter($req)
     {
-        $this->_fPdf->Ln();                                                 // Line Break
+        $this->_fPdf->Ln($req->template['footerHeight']);                   // Line Break
         if (isset($req->footer)) {                                          // Layout 
             foreach ($req->footer as $item) {
                 $item = (object)$item;

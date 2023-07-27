@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Bll\GenerateReportBll;
+use App\Models\VtSearchGroup;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,10 +28,18 @@ class ReportController extends Controller
     public function reportGenerate(Request $req)
     {
         try {
-            $response = $this->_generateReportBll->createReport($req);
-            return response($response, 200, [
-                'Content-type'        => 'application/pdf',
-            ]);
+            $mVtSearchGroup = new VtSearchGroup();
+            $searchGroup = $mVtSearchGroup::find($req->template['searchGroupId']);
+            if (collect($searchGroup)->isEmpty())
+                throw new Exception("Search Group not Available");
+            // preview Only available for pdf reports
+            if ($searchGroup->is_report == true) {
+                $response = $this->_generateReportBll->createReport($req);
+                return response($response, 200, [
+                    'Content-type'        => 'application/pdf',
+                ]);
+            } else
+                throw new Exception("Preview Not Available for the Search Reports");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
