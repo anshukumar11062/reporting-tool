@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bll;
+namespace App\BLL;
 
 use App\Models\VtSearchGroup;
 use App\Models\VtTemplate;
@@ -82,7 +82,7 @@ class SaveTemplateBll
             $this->saveTempFooter($req);                        // Save Template Footer
         }
 
-        if ($this->_isPdfReport == false)
+        if ($this->_isPdfReport == false)                       // For non printable reports
             $this->saveTempParameters($req);
 
         DB::commit();

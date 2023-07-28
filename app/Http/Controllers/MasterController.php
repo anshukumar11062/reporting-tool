@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Bll\SaveTemplateBll;
+use App\BLL\GetTemplateByIdBll;
+use App\BLL\SaveTemplateBll;
 use App\Repository\Api\MasterApiRepository as MasterApiRepository;
 use App\Models\VtResource;
 use App\Models\VtSearchGroup;
@@ -370,6 +371,26 @@ class MasterController extends Controller
     }
 
     /************** Create template End **************/
+
+    /************** View Template End ****************/
+    public function getTemplateById(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|integer'
+        ]);
+
+        if ($validator->fails())
+            return validationError($validator);
+
+        try {
+            $getTemplateByIdBll = new GetTemplateByIdBll;
+            $template = $getTemplateByIdBll->getTemplate($req->id);
+            return responseMsgs(true, "Template Details", remove_null($template));
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
+    }
+    /************** View Template End ****************/
 
     public function MenuList()
     {

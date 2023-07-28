@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Bll\GenerateReportBll;
+use App\BLL\GenerateReportBll;
+use App\Http\Requests\TemplateRequest;
 use App\Models\VtSearchGroup;
 use Exception;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class ReportController extends Controller
     }
 
     //
-    public function reportGenerate(Request $req)
+    public function generateReport(Request $req)
     {
         try {
             $mVtSearchGroup = new VtSearchGroup();
@@ -67,5 +68,12 @@ class ReportController extends Controller
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
+    }
+
+    /**
+     * | Generate Search Type Reports
+     */
+    public function generateSearchReport(TemplateRequest $req)
+    {
     }
 }

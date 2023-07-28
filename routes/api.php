@@ -73,36 +73,7 @@ Route::controller(MasterController::class)->group(function () {
     */
     Route::post('v1/template/save', 'saveTemplate');
     Route::post('v1/template/update', 'updateTemplate');
-    Route::post('v1/template/view', 'getTemplate');
-    Route::post('v1/template/list', 'getTemplate');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Tempalte Page Layouts
-    |--------------------------------------------------------------------------
-    */
-    Route::post('v1/template-pl/save', 'saveTempPageLayouts');
-    Route::post('v1/template-pl/update', 'updateTempPageLayouts');
-    Route::post('v1/template-pl/view', 'getTempPageLayouts');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Tempalte Details
-    |--------------------------------------------------------------------------
-    */
-    Route::post('v1/template-dtl/save', 'saveTempDetails');
-    Route::post('v1/template-dtl/update', 'updateTempDetails');
-    Route::post('v1/template-dtl/view', 'getTempDetails');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Tempalte Footer
-    |--------------------------------------------------------------------------
-    */
-    Route::post('v1/templateFtr/save', 'SaveTempFooter');
-    Route::put('v1/templateFtr/update/{id}', 'UpdateTempFooters');
-    Route::get('v1/templateFtr/view/{id}', 'GetTempFooters');
-    Route::get('v1/templateFtr/list', 'GetTempFooters');
+    Route::post('v1/template/view', 'getTemplateById');
 });
 
 Route::controller(Controller::class)->group(function () {
@@ -118,6 +89,7 @@ Route::controller(Controller::class)->group(function () {
  * | Report Generation Controller
  */
 Route::controller(ReportController::class)->group(function () {
-    Route::post('v1/report/generate', 'reportGenerate');
-    Route::post('v1/report/query-result', 'queryResult');                  // Get Report Query Result
+    Route::post('v1/report/generate', 'generateReport');
+    Route::post('v1/report/query-result', 'queryResult');                         // Get Report Query Result
+    Route::post('v1/report/search-report-generate', 'generateSearchReport');      // Generate Search Report
 });

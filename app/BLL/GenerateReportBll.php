@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bll;
+namespace App\BLL;
 
 use App\Traits\Api\PdfHelpers;
 use Codedge\Fpdf\Fpdf\Fpdf;
