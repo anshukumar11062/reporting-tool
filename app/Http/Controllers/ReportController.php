@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\BLL\GenerateReportBll;
-use App\Http\Requests\TemplateRequest;
+use App\BLL\GenerateSearchReportBll;
+use App\BLL\GetTemplateByIdBll;
 use App\Models\VtSearchGroup;
 use Exception;
 use Illuminate\Http\Request;
@@ -73,7 +74,23 @@ class ReportController extends Controller
     /**
      * | Generate Search Type Reports
      */
-    public function generateSearchReport(TemplateRequest $req)
+    public function generateSearchReport(Request $req)
     {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|integer'
+        ]);
+
+        if ($validator->fails())
+            return validationError($validator);
+
+        try {
+            $getTemplateByIdBll = new GetTemplateByIdBll;
+            $generateSearchReportBll = new GenerateSearchReportBll;
+            $template = $getTemplateByIdBll->getTemplate($req->id);
+            $response = $generateSearchReportBll->generate($req, $template);
+            return responseMsgs(true, "Template Details", remove_null($response));
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
     }
 }

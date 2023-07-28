@@ -6,10 +6,10 @@ use App\Models\VtSearchGroup;
 use App\Models\VtTemplate;
 use App\Models\VtTemplateDeatil;
 use App\Models\VtTemplateFooter;
+use App\Models\VtTemplatePagelayout;
 use App\Models\VtTemplateParameter;
 use Exception;
 
-use function PHPUnit\Framework\isEmpty;
 
 /**
  * | Author-Anshu Kumar
@@ -23,8 +23,9 @@ class GetTemplateByIdBll
     private $_mVtTemplateDetails;
     private $_mVtTemplateFooters;
     private $_mVtTemplateParameters;
+    private $_mVtTemplateLayout;
     private $_templateId;
-    private $_GRID;
+    private array $_GRID;
     /**
      * | Initializing Variables
      */
@@ -35,6 +36,7 @@ class GetTemplateByIdBll
         $this->_mVtTemplateDetails = new VtTemplateDeatil();
         $this->_mVtTemplateFooters = new VtTemplateFooter();
         $this->_mVtTemplateParameters = new VtTemplateParameter();
+        $this->_mVtTemplateLayout = new VtTemplatePagelayout();
     }
 
     /**
@@ -45,8 +47,46 @@ class GetTemplateByIdBll
     {
         $this->_templateId = $id;
         $template = $this->_mVtTemplates::find($id);
-        if (isEmpty($template))
+        if (collect($template)->isEmpty())
             throw new Exception("Template Not Found");
-        return $template;
+        $this->_GRID['templates'] = $template;
+        $searchGroup = $this->_mVtSearchGroup::find($template->search_group_id);
+
+        if (collect($searchGroup)->isEmpty())
+            throw new Exception("Search Group not available");
+
+        if ($searchGroup->is_report)
+            $this->readReportTbls();
+        else
+            $this->readParameterTbl();
+
+        return $this->_GRID;
+    }
+
+
+    /**
+     * | Read Report Tables
+     */
+    public function readReportTbls()
+    {
+        $details = $this->_mVtTemplateDetails::where('report_template_id', $this->_templateId)
+            ->get();
+        $footers = $this->_mVtTemplateFooters::where('report_template_id', $this->_templateId)
+            ->get();
+        $layouts = $this->_mVtTemplateLayout::where('report_template_id', $this->_templateId)
+            ->get();
+        $this->_GRID['details'] = $details;
+        $this->_GRID['footers'] = $footers;
+        $this->_GRID['layouts'] = $layouts;
+    }
+
+    /**
+     * | Read Parameter table
+     */
+    public function readParameterTbl()
+    {
+        $parameters = $this->_mVtTemplateParameters::where('report_template_id', $this->_templateId)
+            ->get();
+        $this->_GRID['parameters'] = $parameters;
     }
 }
