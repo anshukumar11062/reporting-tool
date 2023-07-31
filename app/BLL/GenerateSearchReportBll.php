@@ -3,6 +3,7 @@
 namespace App\BLL;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * | Author-Anshu Kumar
@@ -19,19 +20,20 @@ class GenerateSearchReportBll
      */
     public function generate($req, $template)
     {
+        $customVars = collect();
         $this->_parameters = $template['parameters'];
-
         $linkName = array();
         foreach ($req->params as $item) {
             $item = (object)$item;
             $parameter = $this->_parameters->where('id', $item->id)->first();
             $linkName = $parameter->link_name;
-            ${$linkName} = $item->controlValue;
+            $customVars->put('$' . $linkName, $item->controlValue);
         }
         $query = $template['templates']->detail_sql;
-        dd($query);
+        foreach ($customVars as $key => $item) {
+            $query = Str::replace($key, $item, $query);
+        }
         $queryResult = DB::select($query);
-        dd($queryResult);
-        dd($this->_parameters->toArray());
+        return $queryResult;
     }
 }
