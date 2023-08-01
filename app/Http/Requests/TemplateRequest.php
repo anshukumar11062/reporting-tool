@@ -153,7 +153,7 @@ class TemplateRequest extends FormRequest
                 "parameters.*.serial" => "required|integer",
                 "parameters.*.controlName" => "required|string",
                 "parameters.*.displayString" => "required|string",
-                "parameters.*.controlType" => "required|string",
+                "parameters.*.controlType" => "required|string|In:Date,Number,Text,Combo",
                 "parameters.*.linkName" => "nullable|string",
                 "parameters.*.sourceSql" => "nullable|string",
                 "parameters.*.boundColumn" => "nullable|string",

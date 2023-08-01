@@ -450,17 +450,23 @@ class MasterController extends Controller
     public function MenuList()
     {
         try {
+            $redisConn = Redis::connection();
             $menuarr = array();
+            $cachedList = $redisConn->get('vt_search_groups');
+            if (isset($cachedList))
+                $grpList = json_decode($cachedList, true);
+            else {
+                $grpList = DB::table('vt_search_groups')
+                    ->where('status', 1)
+                    ->get();
+                $redisConn->set('vt_search_groups', json_encode($grpList));
+            }
 
-            $grpList = DB::table('vt_search_groups')
-                ->where('status', 1)
-                ->get();
             $arr = array();
             $subarr = array();
             $pid = 0;
-            foreach ($grpList as $grp) {
-                //if((empty($grp->parent_id) || $grp->parent_id == 0))
-                {
+            foreach ($grpList as $grp) { {
+                    $grp = (object)$grp;
                     $pid = $grp->id;
                     $arr['menu_id'] = $grp->id;
                     $arr['menu_name'] = $grp->search_group;
@@ -472,7 +478,7 @@ class MasterController extends Controller
 
             return response($menuarr, 200);
         } catch (Exception $e) {
-            return response()->json($e, 400);
+            return response()->json($e->getMessage(), 400);
         }
     }
 
