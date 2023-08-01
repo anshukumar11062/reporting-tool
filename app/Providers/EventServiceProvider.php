@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\VtSearchGroup;
+use App\Models\VtString;
+use App\Models\VtTemplate;
+use App\Observers\VtSearchGroupObserver;
+use App\Observers\VtStringObserver;
+use App\Observers\VtTemplateObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -27,7 +33,9 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        VtTemplate::observe(VtTemplateObserver::class);
+        VtString::observe(VtStringObserver::class);
+        VtSearchGroup::observe(VtSearchGroupObserver::class);
     }
 
     /**

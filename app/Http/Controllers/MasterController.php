@@ -8,9 +8,6 @@ use App\Repository\Api\MasterApiRepository as MasterApiRepository;
 use App\Models\VtResource;
 use App\Models\VtSearchGroup;
 use App\Models\VtString;
-use App\Models\VtTemplateDeatil;
-use App\Models\VtTemplatePagelayout;
-use App\Models\VtTemplateFooter;
 use Illuminate\Support\Facades\Validator;
 
 use App\Http\Requests\Resource as ResourceRequest;
@@ -21,9 +18,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
 use Exception;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Schema;
-use SebastianBergmann\Template\Template;
+use Illuminate\Support\Facades\Redis;
 
 /*******************************************************************************
  * Report tool api                                                              *
@@ -123,18 +118,28 @@ class MasterController extends Controller
                 ->where('status', 1);
 
             if ($resource->id)
-                $arr = $baseQuery
-                    ->where('id', $resource->id)
-                    ->first();
+                $arr = $baseQuery->where('id', $resource->id)->first();
             else
-                $arr = $baseQuery
-                    ->orderByDesc('id')
-                    ->get();
+                $arr = $this->resourseList($baseQuery);                     // (1)
 
             return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
             return responseMsgs(true, $e->getMessage(), []);
         }
+    }
+
+    // Resources List (1)
+    public function resourseList($baseQuery)
+    {
+        $redisConn = Redis::connection();
+        $resources = $redisConn->get('vt_resources');
+        if (isset($resources))
+            $arr = json_decode($resources, true);
+        else {
+            $arr = $baseQuery->orderByDesc('id')->get();
+            $redisConn->set('vt_resources', json_encode($arr));
+        }
+        return $arr;
     }
 
     // Deactivate Resource
@@ -228,12 +233,26 @@ class MasterController extends Controller
             if ($resource->id)
                 $arr = DB::table('vt_search_groups')->where('id', $resource->id)->first(); // Particular single record based on id
             else
-                $arr = DB::table('vt_search_groups')->where('status', 1)->orderByDesc('id')->get(); // All records from table
+                $arr = $this->groupList();
 
             return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
+    }
+
+    // Group List
+    public function groupList()
+    {
+        $redisConn = Redis::connection();
+        $cachedList = $redisConn->get('vt_search_groups');
+        if (isset($cachedList))
+            $arr = json_decode($cachedList, true);
+        else {
+            $arr = DB::table('vt_search_groups')->where('status', 1)->orderByDesc('id')->get(); // All records from table
+            $redisConn->set('vt_search_groups', json_encode($arr));
+        }
+        return $arr;
     }
 
     // Deactive group
@@ -321,14 +340,28 @@ class MasterController extends Controller
             $arr = array();
             // Check id found form request
             if ($resource->id)
-                $arr = DB::table('vt_strings')->where('id', $resource->id)->first(); // Particular single record based on id
+                $arr = DB::table('vt_strings')->where('id', $resource->id)->first();        // Particular single record based on id
             else
-                $arr = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get(); // All records from table
+                $arr = $this->stringList();
 
             return responseMsgs(true, "Fetched Data", remove_null($arr));
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
         }
+    }
+
+    // String Lists
+    public function stringList()
+    {
+        $redisConn = Redis::connection();
+        $vtStrings = $redisConn->get('vt_strings');
+        if (isset($vtStrings))
+            $arr = json_decode($vtStrings, true);
+        else {
+            $arr = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get();       // All records from table
+            $redisConn->set('vt_strings', json_encode($arr));
+        }
+        return $arr;
     }
 
     // Deactivate String
@@ -397,8 +430,16 @@ class MasterController extends Controller
     public function templateList()
     {
         try {
-            $mTemplate = new VtTemplate();
-            $template = $mTemplate::orderBy('id', 'desc')->get();
+            $redisConn = Redis::connection();
+            $templates = $redisConn->get('vt_templates');
+            if (isset($templates)) {
+                $template = json_decode($templates, true);
+            } else {
+                $mTemplate = new VtTemplate();
+                $template = $mTemplate::orderBy('id', 'desc')
+                    ->get();
+                $redisConn->set('vt_templates', json_encode($template));                    // Redis key is deleting on Observer
+            }
             return responseMsgs(true, "Template Details", remove_null($template));
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), []);
