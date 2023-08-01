@@ -428,18 +428,35 @@ class MasterController extends Controller
 
 
     /************** Template Lists ****************** */
-    public function templateList()
+    public function templateList(Request $req)
     {
+        $validator = Validator::make($req->all(), [
+            'reportType' => 'required|string|In:ui,print,all'
+        ]);
+
+        if ($validator->fails())
+            return validationError($validator);
+
         try {
             $redisConn = Redis::connection();
-            $templates = $redisConn->get('vt_templates');
-            if (isset($templates)) {
-                $template = json_decode($templates, true);
-            } else {
-                $mTemplate = new VtTemplate();
-                $template = $mTemplate::orderBy('id', 'desc')
-                    ->get();
-                $redisConn->set('vt_templates', json_encode($template));                    // Redis key is deleting on Observer
+            $mTemplate = new VtTemplate();
+
+            if ($req->reportType == 'ui')                                                 // UI Templates Only
+                $template = $mTemplate->getTemplateByType(false);
+
+            if ($req->reportType == 'print')                                              // Pritable Templates Only
+                $template = $mTemplate->getTemplateByType(true);
+
+            if ($req->reportType == 'all')                                              // All Templates
+            {
+                $templates = $redisConn->get('vt_templates');
+                if (isset($templates)) {
+                    $template = json_decode($templates, true);
+                } else {
+                    $template = $mTemplate::orderBy('id', 'desc')
+                        ->get();
+                    $redisConn->set('vt_templates', json_encode($template));                    // Redis key is deleting on Observer
+                }
             }
             return responseMsgs(true, "Template Details", remove_null($template));
         } catch (Exception $e) {

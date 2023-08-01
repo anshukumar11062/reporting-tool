@@ -17,10 +17,6 @@ use App\Http\Controllers\ReportController;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 
 /**
  * Routes for API masters, api searchable and api edit
