@@ -9,7 +9,7 @@ use App\Models\VtTemplateFooter;
 use App\Models\VtTemplatePagelayout;
 use App\Models\VtTemplateParameter;
 use Exception;
-
+use Illuminate\Support\Facades\DB;
 
 /**
  * | Author-Anshu Kumar
@@ -87,6 +87,16 @@ class GetTemplateByIdBll
     {
         $parameters = $this->_mVtTemplateParameters::where('report_template_id', $this->_templateId)
             ->get();
+
+        foreach ($parameters as $parameter) {
+            if ($parameter->control_type == 'Combo') {              // If input field is of type select box or combo
+                if (isset($parameter->source_sql)) {
+                    $queryResult = DB::select($parameter->source_sql);
+                    $parameter->queryResult = $queryResult ?? [];
+                }
+            }
+        }
+
         $this->_GRID['parameters'] = $parameters;
     }
 }

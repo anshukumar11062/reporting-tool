@@ -363,6 +363,7 @@ class MasterController extends Controller
         try {
             $saveTemplateBll = new SaveTemplateBll;
             $saveTemplateBll->store($req);
+            dd("Test");
             return responseMsgs(true, "Successfully Saved the template", []);
         } catch (Exception $e) {
             DB::rollBack();
@@ -391,6 +392,20 @@ class MasterController extends Controller
         }
     }
     /************** View Template End ****************/
+
+
+    /************** Template Lists ****************** */
+    public function templateList()
+    {
+        try {
+            $mTemplate = new VtTemplate();
+            $template = $mTemplate::orderBy('id', 'desc')->get();
+            return responseMsgs(true, "Template Details", remove_null($template));
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), []);
+        }
+    }
+    /************** Template Lists ****************** */
 
     public function MenuList()
     {

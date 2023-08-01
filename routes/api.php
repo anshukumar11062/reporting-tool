@@ -74,6 +74,7 @@ Route::controller(MasterController::class)->group(function () {
     Route::post('v1/template/save', 'saveTemplate');
     Route::post('v1/template/update', 'updateTemplate');
     Route::post('v1/template/view', 'getTemplateById');
+    Route::post('v1/template/list', 'templateList');
 });
 
 Route::controller(Controller::class)->group(function () {
