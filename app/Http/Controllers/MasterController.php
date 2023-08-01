@@ -363,7 +363,6 @@ class MasterController extends Controller
         try {
             $saveTemplateBll = new SaveTemplateBll;
             $saveTemplateBll->store($req);
-            dd("Test");
             return responseMsgs(true, "Successfully Saved the template", []);
         } catch (Exception $e) {
             DB::rollBack();

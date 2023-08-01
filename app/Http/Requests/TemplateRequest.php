@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use App\Bll\SaveTemplateBll;
 use App\Models\VtSearchGroup;
-use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator as ValidationValidator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -59,15 +58,21 @@ class TemplateRequest extends FormRequest
             "template.templateName" => "required|string",
             "template.paperSizeEnum" => "nullable|string",
             "template.detailLayout" => "nullable|string",
+            "template.detailLayout" => new RequiredIf($searchGroup->is_report == true),
             "template.headerHeight" => "nullable|integer",
+            "template.headerHeight" => new RequiredIf($searchGroup->is_report == true),
             "template.headerHeightPage2" => "nullable|integer",
+            "template.headerHeightPage2" => new RequiredIf($searchGroup->is_report == true),
             "template.footerHeight" => "nullable|integer",
+            "template.footerHeight" => new RequiredIf($searchGroup->is_report == true),
             "template.detailLineSpacing" => "nullable|integer",
             "template.layoutSql" => "nullable|string",
             "template.detailSql" => "required|string",
             "template.footerSql" => "nullable|string",
             "template.isDefault" => "nullable|bool",
+            "template.isDefault" => new RequiredIf($searchGroup->is_report == true),
             "template.isLandscape" => "nullable|bool",
+            "template.isLandscape" => new RequiredIf($searchGroup->is_report == true),
             "template.isGlobalHeader" => "nullable|bool",
             "template.isRenderGlobalHeader" => "nullable|bool",
             "template.isPageLayoutInPager2" => "nullable|bool",
