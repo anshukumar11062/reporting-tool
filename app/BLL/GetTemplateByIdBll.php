@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
  * | Author-Anshu Kumar
  * | Created On-28-07-2023 
  * | Get Template Details by id
+ * | Status-Closed
  */
 class GetTemplateByIdBll
 {

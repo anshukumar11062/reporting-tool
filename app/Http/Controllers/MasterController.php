@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Redis;
  * Version: 2.0
  * Date: 2023-07-27
  * Author - Anshu Kumar
+ * Status-Closed
  *******************************************************************************/
 
 class MasterController extends Controller

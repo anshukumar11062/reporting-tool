@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
  * | Author-Anshu Kumar
  * | Created on-21-07-2023 
  * | Created for Reports layout previews
+ * | Status-Closed
  */
 
 class GenerateReportBll
