@@ -45,7 +45,7 @@ class ReportController extends Controller
             } else
                 throw new Exception("Preview Not Available for the Search Reports");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0201", "1.0", $req->deviceId);
         }
     }
 
@@ -66,10 +66,13 @@ class ReportController extends Controller
             $strQuery = Str::contains($lowerQuery, ['update', 'delete', 'insert']);
             if ($strQuery)
                 throw new Exception("Unauthorized Query");
+            $strQuery = Str::contains($lowerQuery, ['limit']);
+            if ($strQuery)
+                throw new Exception("Limit has been set default dont mention it on query");
             $queryResult = DB::select($query);
-            return responseMsgs(true, "Query Result", remove_null($queryResult));
+            return responseMsgs(true, "Query Result", remove_null($queryResult), "RP0202", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0202", "1.0", $req->deviceId);
         }
     }
 
@@ -90,9 +93,9 @@ class ReportController extends Controller
             $generateSearchReportBll = new GenerateSearchReportBll;
             $template = $getTemplateByIdBll->getTemplate($req->id);
             $response = $generateSearchReportBll->generate($req, $template);
-            return responseMsgs(true, "Template Details", remove_null($response));
+            return responseMsgs(true, "Template Details", remove_null($response), "RP0203", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0203", "1.0", $req->deviceId);
         }
     }
 }

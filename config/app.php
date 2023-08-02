@@ -69,7 +69,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Kolkata',
 
     /*
     |--------------------------------------------------------------------------
@@ -194,7 +194,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-	App\Providers\FieldTypeServiceProvider::class,
+        App\Providers\FieldTypeServiceProvider::class,
 
     ],
 
@@ -211,7 +211,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         'FieldType' => App\ReportFieldType\FieldType::class,
-        
+
     ])->toArray(),
 
 ];

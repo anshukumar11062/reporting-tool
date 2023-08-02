@@ -21,13 +21,13 @@ use Exception;
 use Illuminate\Support\Facades\Redis;
 
 /*******************************************************************************
- * Report tool api                                                              *
- *                                                                              *
+ * Report tool api                                                              *                                                                            
  * Version: 1.0                                                                 *
  * Date:    2022-08-26                                                          *
  * Author:  Shashi Kumar Sharma                                                 *
  * ------------------------------------------------------------------------------
  * Version: 2.0
+ * Controller No-01
  * Date: 2023-07-27
  * Author - Anshu Kumar
  * Status-Closed
@@ -65,9 +65,9 @@ class MasterController extends Controller
             $vtres->status = 1;
             $vtres->relative_path = $relativePath;
             $vtres->save();
-            return responseMsgs(true, "Successfully Saved", []);
+            return responseMsgs(true, "Successfully Saved", [], "RP0101", "1.0", $resource->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0101", "1.0", $resource->deviceId);
         }
     }
 
@@ -97,13 +97,13 @@ class MasterController extends Controller
                 $res->image_path = $imagePath;
                 $res->relative_path = $relativePath;
                 $res->save();
-                return responseMsgs(true, "Updated Successfully", []);
+                return responseMsgs(true, "Updated Successfully", [], "RP0102", "1.0", $resource->deviceId);
             } else
                 throw new Exception("id not found");
 
-            return responseMsgs(true, "Successfully Updated", []);
+            return responseMsgs(true, "Successfully Updated", [], "RP0102", "1.0", $resource->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0102", "1.0", $resource->deviceId);
         }
     }
 
@@ -123,9 +123,9 @@ class MasterController extends Controller
             else
                 $arr = $this->resourseList($baseQuery);                     // (1)
 
-            return responseMsgs(true, "Fetched Data", remove_null($arr));
+            return responseMsgs(true, "Fetched Data", remove_null($arr), "RP0103", "1.0", $resource->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(true, $e->getMessage(), []);
+            return responseMsgs(true, $e->getMessage(), [], "RP0103", "1.0", $resource->deviceId);
         }
     }
 
@@ -161,9 +161,9 @@ class MasterController extends Controller
             $resource->update([
                 'status' => 0
             ]);
-            return responseMsgs(true, "Deleted Successfully", []);
+            return responseMsgs(true, "Deleted Successfully", [], "RP0104", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(true, $e->getMessage(), []);
+            return responseMsgs(true, $e->getMessage(), [], "RP0104", "1.0", $req->deviceId);
         }
     }
 
@@ -190,9 +190,9 @@ class MasterController extends Controller
             $vtgrp->status = 1;
             $vtgrp->parent_id = isset($data->parentId) ? $data->parentId : null;
             $vtgrp->save();
-            return response()->json(['status' => true, 'Message' => "Save successfully"], 200);
+            return responseMsgs(true, "Saved Successfully", [], "RP0105", "1.0", $data->deviceId);
         } catch (Exception $e) {
-            return response()->json([$e, 400]);
+            return responseMsgs(true, $e->getMessage(), [], "RP0105", "1.0", $data->deviceId);
         }
     }
 
@@ -216,12 +216,12 @@ class MasterController extends Controller
                 $res->status = 1;
                 $res->parent_id = isset($data->parentId) ? $data->parentId : null;
                 $res->save();
-                return responseMsgs(true, "Updated Successfully", []);
+                return responseMsgs(true, "Updated Successfully", [], "RP0106", "1.0", $data->deviceId);
             } else {
                 throw new Exception("Id not Found");
             }
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0106", "1.0", $data->deviceId);
         }
     }
 
@@ -236,9 +236,9 @@ class MasterController extends Controller
             else
                 $arr = $this->groupList();
 
-            return responseMsgs(true, "Fetched Data", remove_null($arr));
+            return responseMsgs(true, "Fetched Data", remove_null($arr), "RP0107", "1.0", $resource->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0107", "1.0", $resource->deviceId);
         }
     }
 
@@ -273,9 +273,9 @@ class MasterController extends Controller
             $resource->update([
                 'status' => 0
             ]);
-            return responseMsgs(true, "Deleted Successfully", []);
+            return responseMsgs(true, "Deleted Successfully", [], "RP0108", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0108", "1.0", $req->deviceId);
         }
     }
 
@@ -301,9 +301,9 @@ class MasterController extends Controller
             $vtstr->description = $data->description;
             $vtstr->status = 1;
             $vtstr->save();
-            return responseMsgs(true, "Successfully Saved", []);
+            return responseMsgs(true, "Successfully Saved", [], "RP0109", "1.0", $data->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0109", "1.0", $data->deviceId);
         }
     }
 
@@ -325,12 +325,12 @@ class MasterController extends Controller
                 $res->field_name = $data->fieldName;
                 $res->description = $data->description;
                 $res->save();
-                return responseMsgs(true, "Successfully Updated", []);
+                return responseMsgs(true, "Successfully Updated", [], "RP0110", "1.0", $data->deviceId);
             } else {
                 throw new Exception("No Id Available");
             }
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0110", "1.0", $data->deviceId);
         }
     }
 
@@ -345,9 +345,9 @@ class MasterController extends Controller
             else
                 $arr = $this->stringList();
 
-            return responseMsgs(true, "Fetched Data", remove_null($arr));
+            return responseMsgs(true, "Fetched Data", remove_null($arr), "RP01011", "1.0", $resource->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP01011", "1.0", $resource->deviceId);
         }
     }
 
@@ -382,9 +382,9 @@ class MasterController extends Controller
             $resource->update([
                 'status' => 0
             ]);
-            return responseMsgs(true, "Deleted Successfully", []);
+            return responseMsgs(true, "Deleted Successfully", [], "RP0112", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0112", "1.0", $req->deviceId);
         }
     }
     /************** String master End **************/
@@ -397,10 +397,10 @@ class MasterController extends Controller
         try {
             $saveTemplateBll = new SaveTemplateBll;
             $saveTemplateBll->store($req);
-            return responseMsgs(true, "Successfully Saved the template", []);
+            return responseMsgs(true, "Successfully Saved the template", [], "RP0113", "1.0", $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0113", "1.0", $req->deviceId);
         }
     }
 
@@ -419,9 +419,9 @@ class MasterController extends Controller
         try {
             $getTemplateByIdBll = new GetTemplateByIdBll;
             $template = $getTemplateByIdBll->getTemplate($req->id);
-            return responseMsgs(true, "Template Details", remove_null($template));
+            return responseMsgs(true, "Template Details", remove_null($template), "RP0114", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0114", "1.0", $req->deviceId);
         }
     }
     /************** View Template End ****************/
@@ -458,9 +458,9 @@ class MasterController extends Controller
                     $redisConn->set('vt_templates', json_encode($template));                    // Redis key is deleting on Observer
                 }
             }
-            return responseMsgs(true, "Template Details", remove_null($template));
+            return responseMsgs(true, "Template Details", remove_null($template), "RP0115", "1.0", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), []);
+            return responseMsgs(false, $e->getMessage(), [], "RP0115", "1.0", $req->deviceId);
         }
     }
     /************** Template Lists ****************** */

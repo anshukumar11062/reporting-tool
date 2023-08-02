@@ -19,74 +19,71 @@ use App\Http\Controllers\ReportController;
 
 
 /**
- * Routes for API masters, api searchable and api edit
- * CreatedOn-27-08-2022
+ * | Routes for API masters, api searchable and api edit
+ * | CreatedOn-27-08-2022
+ * | Api No Format- RP+Controller No+ApiNo
+ */
+
+/**
+ * | Controller No 01
  */
 
 Route::controller(MasterController::class)->group(function () {
     /*
     |--------------------------------------------------------------------------
-    | Menu List
-    |--------------------------------------------------------------------------
-    */
-    Route::post('v1/getmenu', 'MenuList');
-
-
-    /*
-    |--------------------------------------------------------------------------
     | Resource master
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/resource/save', 'resourceSave');
-    Route::post('v1/resource/update', 'resourceUpdate');
-    Route::post('v1/resource/view', 'getresource');
-    Route::post('v1/resource/deactivate', 'deactivateResource');
+    Route::post('v1/resource/save', 'resourceSave');                    // 01
+    Route::post('v1/resource/update', 'resourceUpdate');                // 02
+    Route::post('v1/resource/view', 'getresource');                     // 03
+    Route::post('v1/resource/deactivate', 'deactivateResource');        // 04
 
     /*
     |--------------------------------------------------------------------------
     | Search Group master
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/group/save', 'saveGroup');
-    Route::post('v1/group/update', 'updateGroup');
-    Route::post('v1/group/view', 'getGroup');
-    Route::post('v1/group/deactivate', 'deactivateGroup');
+    Route::post('v1/group/save', 'saveGroup');                          // 05                             
+    Route::post('v1/group/update', 'updateGroup');                      // 06
+    Route::post('v1/group/view', 'getGroup');                           // 07
+    Route::post('v1/group/deactivate', 'deactivateGroup');              // 08          
 
     /*
     |--------------------------------------------------------------------------
     | String master
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/string/save', 'saveString');
-    Route::post('v1/string/update', 'updateString');
-    Route::post('v1/string/view', 'getString');
-    Route::post('v1/string/deactivate', 'deactivateString');
+    Route::post('v1/string/save', 'saveString');                       // 09       
+    Route::post('v1/string/update', 'updateString');                   // 11
+    Route::post('v1/string/view', 'getString');                         // 11
+    Route::post('v1/string/deactivate', 'deactivateString');            // 12
 
     /*
     |--------------------------------------------------------------------------
     | Tempalte master
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/template/save', 'saveTemplate');
-    Route::post('v1/template/update', 'updateTemplate');
-    Route::post('v1/template/view', 'getTemplateById');
-    Route::post('v1/template/list', 'templateList');
-});
+    Route::post('v1/template/save', 'saveTemplate');                    // 13
+    Route::post('v1/template/update', 'updateTemplate');                // 14
+    Route::post('v1/template/view', 'getTemplateById');                 // 15
+    Route::post('v1/template/list', 'templateList');                    // 16
 
-Route::controller(Controller::class)->group(function () {
     /*
     |--------------------------------------------------------------------------
-    | Return report template
+    | Menu List
     |--------------------------------------------------------------------------
     */
-    Route::post('v1/getreport/template', 'GenPDFArr');
+    Route::post('v1/getmenu', 'MenuList');                              // 17
 });
 
+
 /**
- * | Report Generation Controller
+ * | Report Generation Controller 
+ * | Controller No = 02
  */
 Route::controller(ReportController::class)->group(function () {
-    Route::post('v1/report/generate', 'generateReport');
-    Route::post('v1/report/query-result', 'queryResult');                         // Get Report Query Result
-    Route::post('v1/report/search-report-generate', 'generateSearchReport');      // Generate Search Report
+    Route::post('v1/report/generate', 'generateReport');               // 01
+    Route::post('v1/report/query-result', 'queryResult');                         // Get Report Query Result(02)
+    Route::post('v1/report/search-report-generate', 'generateSearchReport');      // Generate Search Report(03)
 });

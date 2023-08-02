@@ -28,7 +28,7 @@ class GenerateSearchReportBll
             $item = (object)$item;
             $parameter = $this->_parameters->where('id', $item->id)->first();
             $linkName = $parameter->link_name;
-            $customVars->put('$' . $linkName, $item->controlValue);
+            $customVars->put('$' . $linkName, "'" . $item->controlValue . "'");
         }
         $query = $template['templates']->detail_sql;
         foreach ($customVars as $key => $item) {
