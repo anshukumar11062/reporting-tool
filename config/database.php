@@ -77,6 +77,21 @@ return [
             'search_path' => 'public',
             'sslmode' => 'prefer',
         ],
+        // Database Juidco Property
+        'conn_juidco_prop' => [
+            'driver' => 'pgsql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('PROP_DB_HOST', '127.0.0.1'),
+            'port' => env('PROP_DB_PORT', '5432'),
+            'database' => env('PROP_DB_DATABASE', 'forge'),
+            'username' => env('PROP_DB_USERNAME', 'forge'),
+            'password' => env('PROP_DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
 
         'sqlsrv' => [
             'driver' => 'sqlsrv',

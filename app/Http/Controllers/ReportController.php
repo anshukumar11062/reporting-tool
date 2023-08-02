@@ -69,7 +69,14 @@ class ReportController extends Controller
             $strQuery = Str::contains($lowerQuery, ['limit']);
             if ($strQuery)
                 throw new Exception("Limit has been set default dont mention it on query");
-            $queryResult = DB::select($query);
+
+            $query = $query . " limit 100";
+
+            if (isset($req->moduleId) && $req->moduleId == 1)
+                $queryResult = DB::connection('conn_juidco_prop')->select($query);
+            else
+                $queryResult = DB::select($query);
+
             return responseMsgs(true, "Query Result", remove_null($queryResult), "RP0202", "1.0", $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "RP0202", "1.0", $req->deviceId);
