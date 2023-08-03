@@ -71,10 +71,13 @@ class GetTemplateByIdBll
     public function readReportTbls()
     {
         $details = $this->_mVtTemplateDetails::where('report_template_id', $this->_templateId)
+            ->where('status', 1)
             ->get();
         $footers = $this->_mVtTemplateFooters::where('report_template_id', $this->_templateId)
+            ->where('status', 1)
             ->get();
         $layouts = $this->_mVtTemplateLayout::where('report_template_id', $this->_templateId)
+            ->where('status', 1)
             ->get();
         $this->_GRID['details'] = $details;
         $this->_GRID['footers'] = $footers;
@@ -87,6 +90,7 @@ class GetTemplateByIdBll
     public function readParameterTbl()
     {
         $parameters = $this->_mVtTemplateParameters::where('report_template_id', $this->_templateId)
+            ->where('status', 1)
             ->get();
 
         foreach ($parameters as $parameter) {

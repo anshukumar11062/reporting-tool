@@ -146,6 +146,14 @@ class TemplateRequest extends FormRequest
                 'footer.*.alignment' => 'required|string',
                 'footer.*.color' => 'required|string',
             ]);
+
+            if (isset($this->template['id'])) {
+                $validation = array_merge($validation,  [
+                    'layouts.*.id' => 'nullable|integer',
+                    'details.*.id' => 'nullable|integer',
+                    'footer.*.id' => 'nullable|integer'
+                ]);
+            }
         }
 
         if ($this->_saveTemplateBll->_isPdfReport == false) {       // Validation for Search Report Formats
@@ -161,6 +169,9 @@ class TemplateRequest extends FormRequest
                 "parameters.*.displayColumn" => "nullable|string",
                 "parameters.*.dependencyControlCode" => "nullable|string",
             ]);
+
+            if (isset($this->template['id']))
+                $validation = array_merge($validation, ['parameters.*.id' => 'nullable|integer']);
         }
 
         return $validation;

@@ -76,17 +76,29 @@ class SaveTemplateBll
             "module_id" => $templateReq->moduleId ?? null,
         ];
         DB::beginTransaction();
-        $createdTemplate = $this->_mVtTemplates->create($metaReqs);
-        $req->merge(['reportTemplateId' => $createdTemplate->id]);
-        if ($this->_isPdfReport == true) {                          // for Pdf Reports
-            $this->saveTempPageLayouts($req);                   // Save Page Layouts
-            $this->saveTempDetails($req);                       // Save Template Details
-            $this->saveTempFooter($req);                        // Save Template Footer
+        if ($req->isUpdation == true) {                                         // In Case Of Updation
+            $reportTemplateId = $templateReq->id;
+            $this->_mVtTemplates->editTemplateById($reportTemplateId, $metaReqs);
+        }
+        if ($req->isUpdation == false) {                                        // In Case of New Store
+            $createdTemplate = $this->_mVtTemplates->create($metaReqs);
+            $reportTemplateId = $createdTemplate->id;
         }
 
-        if ($this->_isPdfReport == false)                       // For non printable reports
-            $this->saveTempParameters($req);
+        $req->merge(['reportTemplateId' => $reportTemplateId]);
+        if ($this->_isPdfReport == true) {                          // for Pdf Reports
+            $this->saveTempPageLayouts($req);                       // Save Page Layouts
+            $this->saveTempDetails($req);                           // Save Template Details
+            $this->saveTempFooter($req);                            // Save Template Footer
+        }
 
+        if ($this->_isPdfReport == false)                           // For non printable reports
+        {
+            if ($req->isUpdation)
+                $this->updateTempParameters($req);                  // Updation
+            else
+                $this->saveTempParameters($req);
+        }
         DB::commit();
     }
 
@@ -207,6 +219,62 @@ class SaveTemplateBll
                 "dependency_control_code" =>  $item->dependencyControlCode,
             ];
             $this->_mTempParameters->create($arrayReq);
+        }
+    }
+
+    /********************** Update Template Parameters *********************************** */
+
+    public function updateTempParameters($req)
+    {
+        $getTblParameters = $this->_mTempParameters->getParamByTempId($req->template['id']);
+        $parameters = collect($req->parameters);
+        $toUpdateIds = $parameters->pluck('id');
+        $toBeDeletedParams = $getTblParameters->whereNotIn('id', $toUpdateIds);
+
+        if ($toBeDeletedParams->isNotEmpty()) {                         // To Deleting Columns
+            foreach ($toBeDeletedParams as $item) {
+                $item->update(['status' => 0]);
+            }
+        }
+
+        foreach ($toUpdateIds as $id) {                                 // Create Or Update Column
+            $item = $parameters->where('id', $id)->first();
+            if (collect($item)->isNotEmpty()) {
+                $item = (object)$item;
+                $updateItem = $getTblParameters->where('id', $id)->first();
+                if ($updateItem) {
+                    $updateItem->Update(
+                        [
+                            "report_template_id" => $req->reportTemplateId,
+                            "serial" => $item->serial,
+                            "control_name" => $item->controlName,
+                            "display_string" => $item->displayString,
+                            "control_type" =>  $item->controlType,
+                            "link_name" =>  $item->linkName,
+                            "source_sql" =>  $item->sourceSql,
+                            "bound_column" =>  $item->boundColumn,
+                            "display_column" =>  $item->displayColumn,
+                            "dependency_control_code" =>  $item->dependencyControlCode,
+                            "status" => 1
+                        ]
+                    );
+                } else {
+                    $this->_mTempParameters::create(
+                        [
+                            "report_template_id" => $req->reportTemplateId,
+                            "serial" => $item->serial,
+                            "control_name" => $item->controlName,
+                            "display_string" => $item->displayString,
+                            "control_type" =>  $item->controlType,
+                            "link_name" =>  $item->linkName,
+                            "source_sql" =>  $item->sourceSql,
+                            "bound_column" =>  $item->boundColumn,
+                            "display_column" =>  $item->displayColumn,
+                            "dependency_control_code" =>  $item->dependencyControlCode
+                        ]
+                    );
+                }
+            }
         }
     }
     /************** Template Parameters for no pdf reports ********** */

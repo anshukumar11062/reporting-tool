@@ -22,4 +22,13 @@ class VtTemplate extends Model
             ->where('g.is_report', $isReport)
             ->get();
     }
+
+    /**
+     * | Edit Template By Id
+     */
+    public function editTemplateById($id, $reqs): void
+    {
+        VtTemplate::where('id', $id)
+            ->update($reqs);
+    }
 }

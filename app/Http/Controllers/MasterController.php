@@ -393,6 +393,7 @@ class MasterController extends Controller
     public function saveTemplate(TemplateRequest $req)
     {
         try {
+            $req->merge(['isUpdation' => false]);
             $saveTemplateBll = new SaveTemplateBll;
             $saveTemplateBll->store($req);
             return responseMsgs(true, "Successfully Saved the template", [], "RP0113", "1.0", $req->deviceId);
@@ -412,7 +413,15 @@ class MasterController extends Controller
         if ($validator->fails())
             return validationError($validator);
 
-        dd("Fine All");
+        try {
+            $req->merge(['isUpdation' => true]);
+            $saveTemplateBll = new SaveTemplateBll;
+            $saveTemplateBll->store($req);
+            return responseMsgs(true, "Successfully Updated the template", [], "RP0114", "1.0", $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), [], "RP0114", "1.0", $req->deviceId);
+        }
     }
 
     /************** Create template End **************/
