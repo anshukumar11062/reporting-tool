@@ -73,6 +73,7 @@ class SaveTemplateBll
             "label_column_count" => $templateReq->labelColumnCount ?? null,
             "is_detail_wordwrap" => $templateReq->isDetailWordwrap ?? null,
             "is_compact_footer" => $templateReq->isCompactFooter ?? null,
+            "module_id" => $templateReq->moduleId ?? null,
         ];
         DB::beginTransaction();
         $createdTemplate = $this->_mVtTemplates->create($metaReqs);

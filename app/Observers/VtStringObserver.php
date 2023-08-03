@@ -7,11 +7,6 @@ use Illuminate\Support\Facades\Redis;
 
 class VtStringObserver
 {
-    private $_redisConn;
-    public function __construct()
-    {
-        $this->_redisConn = Redis::connection();
-    }
     /**
      * Handle the VtString "created" event.
      *
@@ -20,7 +15,7 @@ class VtStringObserver
      */
     public function created(VtString $vtString)
     {
-        $this->_redisConn->del('vt_strings');
+        Redis::del('vt_strings');
     }
 
     /**
@@ -31,7 +26,7 @@ class VtStringObserver
      */
     public function updated(VtString $vtString)
     {
-        $this->_redisConn->del('vt_strings');
+        Redis::del('vt_strings');
     }
 
     /**
@@ -42,7 +37,7 @@ class VtStringObserver
      */
     public function deleted(VtString $vtString)
     {
-        $this->_redisConn->del('vt_strings');
+        Redis::del('vt_strings');
     }
 
     /**
@@ -53,7 +48,7 @@ class VtStringObserver
      */
     public function restored(VtString $vtString)
     {
-        $this->_redisConn->del('vt_strings');
+        Redis::del('vt_strings');
     }
 
     /**
@@ -64,6 +59,6 @@ class VtStringObserver
      */
     public function forceDeleted(VtString $vtString)
     {
-        $this->_redisConn->del('vt_strings');
+        Redis::del('vt_strings');
     }
 }

@@ -7,12 +7,7 @@ use Illuminate\Support\Facades\Redis;
 
 class VtResourceObserver
 {
-    private $_redisConn;
 
-    public function __construct()
-    {
-        $this->_redisConn = Redis::connection();
-    }
     /**
      * Handle the VtResource "created" event.
      *
@@ -21,7 +16,7 @@ class VtResourceObserver
      */
     public function created(VtResource $vtResource)
     {
-        $this->_redisConn->del('vt_resources');
+        Redis::del('vt_resources');
     }
 
     /**
@@ -32,7 +27,7 @@ class VtResourceObserver
      */
     public function updated(VtResource $vtResource)
     {
-        $this->_redisConn->del('vt_resources');
+        Redis::del('vt_resources');
     }
 
     /**
@@ -43,7 +38,7 @@ class VtResourceObserver
      */
     public function deleted(VtResource $vtResource)
     {
-        $this->_redisConn->del('vt_resources');
+        Redis::del('vt_resources');
     }
 
     /**
@@ -54,7 +49,7 @@ class VtResourceObserver
      */
     public function restored(VtResource $vtResource)
     {
-        $this->_redisConn->del('vt_resources');
+        Redis::del('vt_resources');
     }
 
     /**
@@ -65,6 +60,6 @@ class VtResourceObserver
      */
     public function forceDeleted(VtResource $vtResource)
     {
-        $this->_redisConn->del('vt_resources');
+        Redis::del('vt_resources');
     }
 }

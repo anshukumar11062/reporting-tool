@@ -85,6 +85,7 @@ class TemplateRequest extends FormRequest
             "template.labelColumnCount" => "nullable|integer",
             "template.isDetailWordwrap" => "nullable|bool",
             "template.isCompactFooter" => "nullable|bool",
+            "template.moduleId" => "nullable|integer",
         ];
 
         if ($this->_saveTemplateBll->_isPdfReport) {                // Validations for Pdf Reports

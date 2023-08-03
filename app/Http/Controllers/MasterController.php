@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Http\Requests\Resource as ResourceRequest;
 use App\Http\Requests\TemplateRequest;
+use App\Models\ModuleMaster;
 use App\Models\VtTemplate;
 use Illuminate\Http\Request;
 
@@ -132,13 +133,12 @@ class MasterController extends Controller
     // Resources List (1)
     public function resourseList($baseQuery)
     {
-        $redisConn = Redis::connection();
-        $resources = $redisConn->get('vt_resources');
+        $resources = Redis::get('vt_resources');
         if (isset($resources))
             $arr = json_decode($resources, true);
         else {
             $arr = $baseQuery->orderByDesc('id')->get();
-            $redisConn->set('vt_resources', json_encode($arr));
+            Redis::set('vt_resources', json_encode($arr));
         }
         return $arr;
     }
@@ -245,13 +245,12 @@ class MasterController extends Controller
     // Group List
     public function groupList()
     {
-        $redisConn = Redis::connection();
-        $cachedList = $redisConn->get('vt_search_groups');
+        $cachedList = Redis::get('vt_search_groups');
         if (isset($cachedList))
             $arr = json_decode($cachedList, true);
         else {
             $arr = DB::table('vt_search_groups')->where('status', 1)->orderByDesc('id')->get(); // All records from table
-            $redisConn->set('vt_search_groups', json_encode($arr));
+            Redis::set('vt_search_groups', json_encode($arr));
         }
         return $arr;
     }
@@ -354,13 +353,12 @@ class MasterController extends Controller
     // String Lists
     public function stringList()
     {
-        $redisConn = Redis::connection();
-        $vtStrings = $redisConn->get('vt_strings');
+        $vtStrings = Redis::get('vt_strings');
         if (isset($vtStrings))
             $arr = json_decode($vtStrings, true);
         else {
             $arr = DB::table('vt_strings')->where('status', 1)->orderByDesc('id')->get();       // All records from table
-            $redisConn->set('vt_strings', json_encode($arr));
+            Redis::set('vt_strings', json_encode($arr));
         }
         return $arr;
     }
@@ -404,6 +402,19 @@ class MasterController extends Controller
         }
     }
 
+    // For Update data in vt_templates table
+    public function updateTemplate(TemplateRequest $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'template.id' => 'required|integer'
+        ]);
+
+        if ($validator->fails())
+            return validationError($validator);
+
+        dd("Fine All");
+    }
+
     /************** Create template End **************/
 
     /************** View Template End ****************/
@@ -438,7 +449,6 @@ class MasterController extends Controller
             return validationError($validator);
 
         try {
-            $redisConn = Redis::connection();
             $mTemplate = new VtTemplate();
 
             if ($req->reportType == 'ui')                                                 // UI Templates Only
@@ -449,13 +459,13 @@ class MasterController extends Controller
 
             if ($req->reportType == 'all')                                              // All Templates
             {
-                $templates = $redisConn->get('vt_templates');
+                $templates = Redis::get('vt_templates');
                 if (isset($templates)) {
                     $template = json_decode($templates, true);
                 } else {
                     $template = $mTemplate::orderBy('id', 'desc')
                         ->get();
-                    $redisConn->set('vt_templates', json_encode($template));                    // Redis key is deleting on Observer
+                    Redis::set('vt_templates', json_encode($template));                    // Redis key is deleting on Observer
                 }
             }
             return responseMsgs(true, "Template Details", remove_null($template), "RP0115", "1.0", $req->deviceId);
@@ -545,5 +555,19 @@ class MasterController extends Controller
         }
         //echo "<pre/>";print_r($menuarr);
         return $menuarr;
+    }
+
+    /**
+     * | Get All Modules
+     */
+    public function moduleList(Request $req)
+    {
+        try {
+            $mModuleMstr = new ModuleMaster();
+            $modules = $mModuleMstr->moduleList();
+            return responseMsgs(true, "Module List", remove_null($modules), "RP0118", "1.0", $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "RP0118", "1.0", $req->deviceId);
+        }
     }
 }

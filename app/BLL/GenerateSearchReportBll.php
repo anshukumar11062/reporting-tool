@@ -34,7 +34,11 @@ class GenerateSearchReportBll
         foreach ($customVars as $key => $item) {
             $query = Str::replace($key, $item, $query);
         }
-        $queryResult = DB::select($query);
+        if (isset($template['templates']->module_id)) {
+            if ($template['templates']->module_id == 1)                             // Property
+                $queryResult = DB::connection('conn_juidco_prop')->select($query);
+        } else
+            $queryResult = DB::select($query);
         return $queryResult;
     }
 }

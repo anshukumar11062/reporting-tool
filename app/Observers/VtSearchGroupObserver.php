@@ -7,12 +7,6 @@ use Illuminate\Support\Facades\Redis;
 
 class VtSearchGroupObserver
 {
-    private $_redisConn;
-
-    public function __construct()
-    {
-        $this->_redisConn = Redis::connection();
-    }
     /**
      * Handle the VtSearchGroup "created" event.
      *
@@ -21,7 +15,7 @@ class VtSearchGroupObserver
      */
     public function created(VtSearchGroup $vtSearchGroup)
     {
-        $this->_redisConn->del('vt_search_groups');
+        Redis::del('vt_search_groups');
     }
 
     /**
@@ -32,7 +26,7 @@ class VtSearchGroupObserver
      */
     public function updated(VtSearchGroup $vtSearchGroup)
     {
-        $this->_redisConn->del('vt_search_groups');
+        Redis::del('vt_search_groups');
     }
 
     /**
@@ -43,7 +37,7 @@ class VtSearchGroupObserver
      */
     public function deleted(VtSearchGroup $vtSearchGroup)
     {
-        $this->_redisConn->del('vt_search_groups');
+        Redis::del('vt_search_groups');
     }
 
     /**
@@ -54,7 +48,7 @@ class VtSearchGroupObserver
      */
     public function restored(VtSearchGroup $vtSearchGroup)
     {
-        $this->_redisConn->del('vt_search_groups');
+        Redis::del('vt_search_groups');
     }
 
     /**
@@ -65,6 +59,6 @@ class VtSearchGroupObserver
      */
     public function forceDeleted(VtSearchGroup $vtSearchGroup)
     {
-        $this->_redisConn->del('vt_search_groups');
+        Redis::del('vt_search_groups');
     }
 }

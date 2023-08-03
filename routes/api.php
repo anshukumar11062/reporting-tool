@@ -75,6 +75,12 @@ Route::controller(MasterController::class)->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::post('v1/getmenu', 'MenuList');                              // 17
+
+
+    /**
+     * | Module Masters
+     */
+    Route::post('v1/module/list', 'moduleList');                       // 18
 });
 
 
